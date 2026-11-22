@@ -37,7 +37,9 @@ Item {
     readonly property bool current: !root.flip
     width: root.width
     anchors.verticalCenter: parent.verticalCenter
-    anchors.verticalCenterOffset: current ? 0 : root.rise
+    // The outgoing line stays in place while it fades; once invisible it waits
+    // below, ready to rise when it takes the next text.
+    anchors.verticalCenterOffset: current || opacity > 0.01 ? 0 : root.rise
     opacity: current ? 1 : 0
     textFormat: Text.PlainText
     elide: Text.ElideRight
@@ -63,7 +65,9 @@ Item {
     readonly property bool current: root.flip
     width: root.width
     anchors.verticalCenter: parent.verticalCenter
-    anchors.verticalCenterOffset: current ? 0 : root.rise
+    // The outgoing line stays in place while it fades; once invisible it waits
+    // below, ready to rise when it takes the next text.
+    anchors.verticalCenterOffset: current || opacity > 0.01 ? 0 : root.rise
     opacity: current ? 1 : 0
     textFormat: Text.PlainText
     elide: Text.ElideRight
