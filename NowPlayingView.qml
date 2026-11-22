@@ -17,6 +17,8 @@ Item {
   property color accent: Commons.Color.accent
   property string fontFamily: Style.font.family
   property bool animate: true
+  // Off: no cover is loaded (the host turns it on while the popup is open).
+  property bool loadArt: true
 
   readonly property bool hasTrack: !!source && source.hasTrack
   readonly property string lyric: showLyric && source ? source.lyric : ""
@@ -56,7 +58,7 @@ Item {
           anchors.fill: parent
           anchors.margins: Style.space(2)
           crop: true
-          url: root.source && root.source.artUrl ? root.source.artUrl : ""
+          url: root.loadArt && root.source && root.source.artUrl ? root.source.artUrl : ""
           visible: url != ""
         }
 

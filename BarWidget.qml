@@ -23,7 +23,8 @@ BarWidget {
   }
   function tr(key, fallback) { return strings.t(key, fallback) }
 
-  readonly property bool showLyric: setting("showLyric", true) !== false
+  // "false" too: shell.json may hold the setting as a string.
+  readonly property bool showLyric: String(setting("showLyric", true)) !== "false"
   readonly property int maxWidth: Style.space(Model.labelWidth(setting("maxWidth", 240), 240))
 
   property bool popupOpen: false
@@ -94,6 +95,8 @@ BarWidget {
       foreground: root.bar ? root.bar.foreground : Commons.Color.foreground
       fontFamily: root.bar && root.bar.fontFamily ? root.bar.fontFamily : Style.font.family
       animate: root.popupOpen
+      // The cover is fetched only while the popup is open, not on every track change.
+      loadArt: root.popupOpen
     }
   }
 }
