@@ -148,6 +148,6 @@ describe('i18n catalogs', () => {
   })
   it('no em dash in user-facing strings', () => {
     for (const file of readdirSync(join(root, 'i18n')))
-      assert.ok(!readFileSync(join(root, 'i18n', file), 'utf8').includes('—'), file)
+      assert.ok(!readFileSync(join(root, 'i18n', file), 'utf8').includes('\u2014'), file)
   })
 })
