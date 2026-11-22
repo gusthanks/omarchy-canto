@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "id": "gusthx.canto",
+  "name": "Canto Now Playing",
+  "version": "0.1.0",
+  "author": "Gustavo Costa (gusthx)",
+  "license": "MIT",
+  "description": "What Canto is playing, in the bar: title and artist, or the current synced lyric line, with play/pause, next/previous and a small popup with the cover.",
+  "kinds": [
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "barWidget": "BarWidget.qml"
+  },
+  "barWidget": {
+    "displayName": "Canto Now Playing",
+    "description": "Now playing in Canto, or the current synced lyric line. Click to play/pause, scroll to skip, right-click for the popup.",
+    "category": "Media",
+    "defaultSection": "centerEnd",
+    "allowMultiple": false,
+    "aliases": [
+      "canto",
+      "music",
+      "lyrics",
+      "now-playing"
+    ],
+    "defaults": {
+      "showLyric": true,
+      "maxWidth": 240
+    },
+    "schema": [
+      {
+        "key": "showLyric",
+        "type": "boolean",
+        "label": "Show the synced lyric line",
+        "description": "Show the current lyric line instead of the title while one is available. Needs Visual Bridge on in Canto (Preferences, Integrations, Visual Bridge).",
+        "defaultValue": true
+      },
+      {
+        "key": "maxWidth",
+        "type": "integer",
+        "label": "Maximum width",
+        "description": "The widest the text in the bar gets, in pixels before scaling. Longer text is cut with an ellipsis.",
+        "min": 120,
+        "max": 600,
+        "step": 20,
+        "defaultValue": 240
+      }
+    ]
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "app": "canto",
+  "version": 1,
+  "active": true,
+  "playing": true,
+  "track": {
+    "id": "mock-0001",
+    "title": "Paper Lanterns",
+    "artists": ["Lumen Coast", "Ana Vale"],
+    "album": "Night Ferry",
+    "duration_ms": 214000,
+    "progress_ms": 61200,
+    "artwork_url": ""
+  },
+  "lyric": "we kept the porch light on and the tide came in anyway",
+  "audio": { "rms": 0.31, "peak": 0.72 },
+  "theme": {
+    "kind": "omarchy",
+    "is_dark": true,
+    "background": "#141414",
+    "surface": "#1e1d1a",
+    "foreground": "#e6e1d6",
+    "accent": "#d4b483",
+    "highlight": "#d4b483"
+  },
+  "updated_at_ms": 1795000000000
+}
