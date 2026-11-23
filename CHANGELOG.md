@@ -1,5 +1,34 @@
 # Changelog
 
+## 0.3.0 (2026-11-23)
+
+### Added
+
+- **Canto's icon** first in the pill (its symbolic app icon, in the theme color). A click
+  raises Canto's window (MPRIS Raise) or starts Canto when it is closed
+  (`gtk-launch io.github.gusthanks.Canto`, falling back to `canto`).
+- **Canto closed**: the pill shrinks to the dimmed icon instead of disappearing (setting
+  `showWhenClosed`, default on).
+- **Like**: a heart in the popup, and optionally in the pill (`showLike`, default off). It
+  calls Canto's `ToggleLiked` D-Bus method, fills at once and follows the bridge's `liked`
+  field; it is hidden when Canto does not say (`liked` null or missing).
+- **Progress line** along the bottom of the popup: the bridge's track progress, or MPRIS
+  position, sampled once a second only while the popup is open.
+
+### Changed
+
+- The popup follows Canto's mini player: cover on the left, title and artist, previous /
+  play (an accent-filled circle) / next, then a lyrics toggle and the heart on the right,
+  the three lyric lines below when the toggle is on (remembered as `popupLyrics`), the
+  progress line at the bottom.
+- Default placement: the bar's left section (after the workspaces).
+
+### Fixed
+
+- With an older Canto (no `lyric_previous`), the popup could show the current line as the
+  previous one too (after the bridge was read again when the popup opened). A line equal to
+  the current one is never shown as its neighbor now.
+
 ## 0.2.0 (2026-11-22)
 
 A redesign after trying 0.1.0 on a real bar, where long lyric lines got cut.

@@ -3,20 +3,22 @@
 [English](README.md) · **Português (Brasil)**
 
 O que o [Canto](https://github.com/gusthanks/canto) está tocando, na barra do
-[Omarchy](https://omarchy.org): anterior / tocar-pausar / próxima, depois o título e o
-artista, ou a linha da música que está sendo cantada agora. Clique no texto para alternar
-entre os dois. Clique com o botão direito para abrir um popup pequeno com a capa e a letra em
-volta da linha atual.
+[Omarchy](https://omarchy.org): o ícone do Canto, anterior / tocar-pausar / próxima, depois o
+título e o artista, ou a linha da música que está sendo cantada agora. Clique no texto para
+alternar entre os dois. Clique com o botão direito para abrir um popup no formato do mini
+player do Canto, com a letra em volta da linha atual e um botão de curtir.
 
-<p align="center"><img src="docs/bar.png" width="600" alt="A barra: botões anterior, pausar e próxima, uma nota musical, Paper Lanterns · Lumen Coast"></p>
+<p align="center"><img src="docs/bar.png" width="600" alt="A barra: o ícone do Canto, botões anterior, pausar e próxima, uma nota musical, Paper Lanterns · Lumen Coast"></p>
 <p align="center"><img src="docs/bar-lyric.png" width="600" alt="Modo letra: um microfone e a linha sincronizada atual, em itálico"></p>
 
 ## O que vem
 
+- **O ícone do Canto na frente**: clique para trazer a janela do Canto. Com o Canto fechado,
+  a pílula vira só o ícone, apagado, e o clique abre o Canto (ou esconda até o Canto abrir).
 - **Controles e a faixa**: botões pequenos de anterior / tocar-pausar / próxima, depois uma
   nota musical e *Título · Artista* (cortado com reticências depois da largura que você
-  escolher). Fica apagado com a música pausada e some quando o Canto está fechado ou sem nada
-  carregado. Os botões podem ser desligados.
+  escolher). Fica apagado com a música pausada. Os botões podem ser desligados, e um botão de
+  curtir (um coração) pode ser ligado.
 - **Clique no texto para ver a letra**: o texto troca para a linha sincronizada que está sendo
   cantada, em itálico e com um microfone na frente, para nunca parecer um título. Clique de
   novo para voltar ao título. A escolha fica salva e sobrevive a um reinício.
@@ -26,9 +28,14 @@ volta da linha atual.
 - **Nunca confuso**: sem linha para mostrar (Ponte Visual desligada, parte instrumental, música
   sem letra sincronizada), o modo letra mostra o título com o microfone apagado. Passe o mouse
   no texto para ver a faixa, o que o clique faz e, se precisar, onde ligar a letra.
-- **Um popup pequeno**: capa, título, artistas e álbum, a linha anterior, a atual (maior) e a
-  próxima, inteiras e quebradas em linhas, e anterior / tocar-pausar / próxima. Clique na capa
-  para trazer a janela do Canto.
+- **Um popup como o mini player do Canto**: capa, título e artista, anterior / tocar / próxima
+  com o botão de tocar num círculo na cor de destaque, o botão de letra e o coração à direita,
+  e uma linha fina de progresso embaixo. Com o botão de letra ligado (ele fica lembrado), a
+  linha anterior, a atual (maior) e a próxima, inteiras e quebradas em linhas. Clique na capa
+  ou no título para trazer a janela do Canto.
+- **Curtir pela barra**: o coração salva a faixa nas suas Músicas Curtidas, ou tira. Ele
+  enche na hora e segue o que o Canto informa. Some quando o Canto não sabe dizer (um Canto
+  mais antigo, ou uma faixa que não é do Spotify).
 - **Só o Canto**: outros players (navegador, vídeo) não aparecem aqui. O widget de mídia do
   Omarchy continua cuidando deles.
 - **Seu tema e seu idioma**: cores, fonte e cantos vêm do tema do Omarchy; os textos seguem o
@@ -40,8 +47,12 @@ volta da linha atual.
 </p>
 
 <p align="center">
-  <img src="docs/panel.png" width="400" alt="O popup: capa, Paper Lanterns, Lumen Coast, Ana Vale, Night Ferry, a linha anterior apagada, a atual maior com um fio na cor de destaque, a próxima apagada, e anterior, pausar, próxima">
-  <img src="docs/panel-hint-pt-BR.png" width="400" alt="O popup com a Ponte Visual desligada: um aviso diz onde ligar">
+  <img src="docs/panel.png" width="400" alt="O popup: capa, Paper Lanterns, Lumen Coast, Ana Vale, anterior, pausar num círculo de destaque, próxima, o botão de letra e um coração cheio; a linha anterior apagada, a atual maior com um fio de destaque, a próxima apagada; uma linha de progresso embaixo">
+  <img src="docs/panel-unliked.png" width="400" alt="O mesmo popup com uma faixa não curtida: coração vazado e uma linha atual curta">
+</p>
+<p align="center">
+  <img src="docs/panel-hint-pt-BR.png" width="400" alt="O popup com a Ponte Visual desligada: sem coração, e um aviso diz onde ligar">
+  <img src="docs/bar-closed.png" width="400" alt="Canto fechado: a pílula é só o ícone do Canto, apagado">
 </p>
 
 *(As imagens são geradas com dados de teste pelo ambiente de desenvolvimento, veja
@@ -49,8 +60,9 @@ volta da linha atual.
 
 ## A letra precisa da Ponte Visual
 
-Título, artista, capa e controles funcionam assim que o Canto abre. A linha da letra precisa
-de uma chave no Canto, que vem desligada:
+Título, artista, capa e controles funcionam assim que o Canto abre. A linha da letra, o coração
+e a linha de progresso do popup (quando o MPRIS não informa a posição) precisam de uma chave
+no Canto, que vem desligada:
 
 **Canto: Preferências, Integrações, Ponte Visual, ligue "Ativar Ponte Visual".**
 (Em inglês: Preferences, Integrations, Visual Bridge, "Enable Visual Bridge".)
@@ -59,10 +71,11 @@ Aí o Canto passa a escrever o que está tocando, com a linha sincronizada atual
 `$XDG_RUNTIME_DIR/canto/state.json`, e este widget lê esse arquivo. Música sem letra
 sincronizada mostra só o título.
 
-As versões recentes do Canto também mandam a linha anterior, a próxima e quando a próxima
-começa: aí o popup mostra a próxima linha e as linhas longas trocam de página no tempo exato.
-Com um Canto mais antigo, o popup mostra a linha anterior e a atual, e cada página fica 1,6 s
-(ou segue a duração da linha anterior).
+As versões recentes do Canto também mandam a linha anterior, a próxima, quando a próxima
+começa e se a faixa está curtida: aí o popup mostra a próxima linha, as linhas longas trocam de
+página no tempo exato e o coração aparece. Com um Canto mais antigo, o popup mostra a linha
+anterior e a atual, cada página fica 1,6 s (ou segue a duração da linha anterior) e não há
+coração.
 
 ## Instalar
 
@@ -71,7 +84,7 @@ omarchy plugin add https://github.com/gusthanks/omarchy-canto.git --enable
 omarchy restart shell
 ```
 
-Ele entra logo à direita do grupo central da barra (ao lado do relógio, no layout padrão).
+Ele entra na seção da esquerda da barra, depois das áreas de trabalho.
 Para mudar de lugar, use `omarchy bar move`, por exemplo
 `omarchy bar move gusthx.canto --section right --index 0`.
 
@@ -81,7 +94,9 @@ Para atualizar: `omarchy plugin update gusthx.canto --yes` e depois `omarchy res
 
 | Na pílula | Faz |
 |---|---|
+| Ícone do Canto | Traz a janela do Canto, ou abre o Canto quando está fechado |
 | Botões anterior / tocar-pausar / próxima | O que dizem |
+| Coração (se ligado) | Curte ou descurte a faixa |
 | Clique no texto | Alterna entre o título e a letra (fica salvo) |
 | Clique do meio | Próxima faixa |
 | Clique direito | Abre ou fecha o popup |
@@ -90,15 +105,19 @@ Para atualizar: `omarchy plugin update gusthx.canto --yes` e depois `omarchy res
 
 ## Configuração
 
-Três opções, no formulário de configurações da barra ou pelo terminal:
+Opções, no formulário de configurações da barra ou pelo terminal:
 
 ```bash
-omarchy bar set gusthx.canto showControls false --json  # só o texto, sem botões
-omarchy bar set gusthx.canto startMode lyric            # começar na letra (o padrão é o título)
-omarchy bar set gusthx.canto maxWidth 320 --json        # texto mais largo (120 a 600, padrão 240)
+omarchy bar set gusthx.canto showControls false --json    # sem anterior / tocar / próxima na barra
+omarchy bar set gusthx.canto showLike true --json         # coração também na barra (no popup ele sempre está)
+omarchy bar set gusthx.canto showWhenClosed false --json  # esconder o widget com o Canto fechado
+omarchy bar set gusthx.canto startMode lyric              # começar na letra (o padrão é o título)
+omarchy bar set gusthx.canto popupLyrics false --json     # sem as linhas da letra no popup
+omarchy bar set gusthx.canto maxWidth 320 --json          # texto mais largo (120 a 600, padrão 240)
 ```
 
-Clicar no texto na barra muda o `startMode` para você. `maxWidth` é em pixels antes da escala
+Clicar no texto na barra muda o `startMode` para você, e o botão de letra do popup muda o
+`popupLyrics`. `maxWidth` é em pixels antes da escala
 da tela: uma linha da letra mais longa vira páginas, um título mais longo ganha reticências.
 
 O movimento segue o Hyprland: com as animações desligadas lá (`animations:enabled = false`),
@@ -109,10 +128,14 @@ a letra troca sem o fade.
 Sem conta, sem telemetria, sem log.
 
 O que ele **lê**: o player MPRIS do Canto no D-Bus da sessão (faixa, artistas, álbum, link da
-capa, se está tocando) e, só com o modo letra ligado ou o popup aberto,
-`$XDG_RUNTIME_DIR/canto/state.json`. Ele **escreve** só a própria opção `startMode` em
-`~/.config/omarchy/shell.json`, quando você clica no texto, pelo próprio shell (como o relógio
-do Omarchy salva o formato).
+capa, se está tocando, posição) e, só com o modo letra ligado, o coração na barra ou o popup
+aberto, `$XDG_RUNTIME_DIR/canto/state.json`. Ele **escreve** só as próprias opções `startMode`
+e `popupLyrics` em `~/.config/omarchy/shell.json`, quando você clica no texto ou no botão de
+letra do popup, pelo próprio shell (como o relógio do Omarchy salva o formato).
+
+O que ele **roda**: `busctl --user call ... ToggleLiked` quando você clica no coração (o método
+D-Bus do próprio Canto) e `gtk-launch io.github.gusthanks.Canto` (ou `canto`) quando você abre
+o Canto pelo ícone.
 
 O que ele **acessa**: nada por conta própria. Com o popup aberto, ele mostra a capa a partir
 do link que o Canto informa, que nas faixas do Spotify é o servidor de imagens do Spotify.
@@ -129,8 +152,8 @@ da tela, então nada aparece no monitor.
 ```bash
 dev/run.sh check     # compila todos os tipos QML, BarWidget.qml incluído
 dev/run.sh test      # testes do Model.js e dos catálogos de texto (node --test, sem npm)
-dev/run.sh docs      # docs/bar.png, bar-lyric.png, bar-lyric-page1.png, bar-lyric-page2.png,
-                     # panel.png, panel-hint.png
+dev/run.sh docs      # docs/bar.png, bar-closed.png, bar-lyric.png, bar-lyric-page1.png,
+                     # bar-lyric-page2.png, panel.png, panel-unliked.png, panel-hint.png
 dev/run.sh preview   # as pílulas e o popup numa janela
 LANGUAGE=pt-BR dev/run.sh panel-hint   # docs/panel-hint-pt-BR.png
 omarchy plugin validate .
@@ -150,4 +173,5 @@ Veja o [CHANGELOG.md](CHANGELOG.md).
 
 ## Licença
 
-MIT. Veja [LICENSE](LICENSE). Copyright (c) 2026 Gustavo Costa (gusthx).
+MIT. Veja [LICENSE](LICENSE). Copyright (c) 2026 Gustavo Costa (gusthx). O ícone do Canto em
+`assets/` vem do [Canto](https://github.com/gusthanks/canto) (MIT, mesmo autor).

@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "id": "gusthx.canto",
   "name": "Canto Now Playing",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "author": "Gustavo Costa (gusthx)",
   "license": "MIT",
-  "description": "What Canto is playing, in the bar: previous / play-pause / next and the title, or the current synced lyric line, shown whole in pages. A small popup shows the cover and the lyric around the current line.",
+  "description": "Canto in the bar: its icon, previous / play-pause / next and the title, or the current synced lyric line shown whole in pages. The popup is laid out like Canto's mini player, with the lyric around the current line and a like button.",
   "kinds": [
     "bar-widget"
   ],
@@ -14,9 +14,9 @@
   },
   "barWidget": {
     "displayName": "Canto Now Playing",
-    "description": "Canto controls and now playing. Click the text to switch between the title and the synced lyric line; right-click for the popup.",
+    "description": "Canto controls and now playing. The icon raises or starts Canto; click the text to switch between the title and the synced lyric line; right-click for the popup.",
     "category": "Media",
-    "defaultSection": "centerEnd",
+    "defaultSection": "left",
     "allowMultiple": false,
     "aliases": [
       "canto",
@@ -26,7 +26,10 @@
     ],
     "defaults": {
       "showControls": true,
+      "showLike": false,
+      "showWhenClosed": true,
       "startMode": "title",
+      "popupLyrics": true,
       "maxWidth": 240
     },
     "schema": [
@@ -35,6 +38,20 @@
         "type": "boolean",
         "label": "Show previous / play-pause / next",
         "description": "Small transport buttons before the text. Off leaves the text alone; clicking it still switches modes, and scrolling still skips.",
+        "defaultValue": true
+      },
+      {
+        "key": "showLike",
+        "type": "boolean",
+        "label": "Show the like button in the bar",
+        "description": "A heart after next. It is always in the popup. Hidden while Canto cannot say whether the track is liked (an older Canto, or a track that is not on Spotify).",
+        "defaultValue": false
+      },
+      {
+        "key": "showWhenClosed",
+        "type": "boolean",
+        "label": "Show the Canto icon while Canto is closed",
+        "description": "The pill shrinks to Canto's icon, dimmed; clicking it starts Canto. Off hides the widget until Canto runs.",
         "defaultValue": true
       },
       {
@@ -47,6 +64,13 @@
         ],
         "defaultValue": "title",
         "description": "title: Title · Artist. lyric: the current synced line (needs Visual Bridge on in Canto: Preferences, Integrations, Visual Bridge). Clicking the text in the bar switches it and saves the choice here."
+      },
+      {
+        "key": "popupLyrics",
+        "type": "boolean",
+        "label": "Lyric lines in the popup",
+        "description": "The line before, the current line and the next one under the player. The lyrics button in the popup switches this and saves the choice here.",
+        "defaultValue": true
       },
       {
         "key": "maxWidth",

@@ -12,7 +12,9 @@ is disruptive.
 - **Do not** run `omarchy restart shell`, `omarchy refresh shell`, `omarchy theme set`,
   or `omarchy-shell` IPC calls to test a change.
 - **Do not** take screenshots of the user's desktop (`grim`) to check your work.
-- **Do not** drive the user's Canto (play, pause, skip) to test: it is their music.
+- **Do not** drive the user's Canto (play, pause, skip, like, launch) to test: it is their
+  music and their Spotify library. Never run `git` or anything else inside
+  `~/.config/omarchy/plugins/`: the shell watches it, reloads and can move the widget.
 
 ## Test and capture in isolation
 
@@ -29,11 +31,13 @@ off; `HEADLESS=0` draws on a background layer surface instead. Everything runs u
 ```bash
 dev/run.sh check            # compile every type, BarWidget.qml included (deploy runs this too)
 dev/run.sh test             # Model.js + i18n catalog tests (node --test, no npm packages)
-dev/run.sh bar              # docs/bar.png              controls + Title · Artist
+dev/run.sh bar              # docs/bar.png              icon, controls, Title · Artist
+dev/run.sh bar-closed       # docs/bar-closed.png       Canto closed: the dimmed icon
 dev/run.sh bar-lyric        # docs/bar-lyric.png        lyric mode, a line that fits
 dev/run.sh bar-lyric-page1  # docs/bar-lyric-page1.png  a long line, first page
 dev/run.sh bar-lyric-page2  # docs/bar-lyric-page2.png  the same line, second page
-dev/run.sh panel            # docs/panel.png            the popup: three lyric lines
+dev/run.sh panel            # docs/panel.png            the popup: mini player, liked, 3 lines
+dev/run.sh panel-unliked    # docs/panel-unliked.png    not liked, a short line
 dev/run.sh panel-hint       # docs/panel-hint.png       the popup with Visual Bridge off
 dev/run.sh docs             # all of the captures above
 dev/run.sh preview          # the pills and the popup in a window
@@ -80,10 +84,14 @@ of a task.
 - Only Canto: `Model.pickCantoPlayer()` never returns another MPRIS player. Keep it that
   way; Omarchy's own media widget covers every player.
 - Keep the bar widget cheap (it must stay light on older laptops): no continuous
-  animation; the only fast timer is the lyric page timer (1.2 s or slower, running only
-  while a long line has pages left); the bridge file is watched only in lyric mode or with
-  the popup open; the cover is loaded only while the popup is open.
-- Canto's bridge fields `lyric_previous`, `lyric_next` and `lyric_ends_in_ms` are newer
-  than the bridge itself: keep the fallbacks for builds that leave them out.
+  animation; the lyric page timer (1.2 s or slower) runs only while a long line has pages
+  left, the progress timer (1 s) only while the popup is open; the bridge file is watched
+  only in lyric mode, with the heart in the bar, or with the popup open; the cover is loaded
+  only while the popup is open.
+- Canto's bridge fields `lyric_previous`, `lyric_next`, `lyric_ends_in_ms` and `liked` are
+  newer than the bridge itself: keep the fallbacks for builds that leave them out (no heart
+  without `liked`).
+- `assets/canto-symbolic.svg` is Canto's own icon (MIT, same author): update it from Canto's
+  `data/hicolor/symbolic/apps/` rather than redrawing it.
 - Mock data only in the harness and tests: never the user's tracks, config or accounts.
   The mock track, lyric and cover are made up for this repo.
