@@ -12,11 +12,13 @@ import "canto" as W
 //
 // MODE (env):
 //   preview          floating window with the pills and the popup, to play with
-//   bar              controls + Title · Artist (title mode)        -> $OUT (png)
+//   bar              Canto icon, controls, Title · Artist          -> $OUT (png)
+//   bar-closed       Canto closed: the dimmed icon alone           -> $OUT (png)
 //   bar-lyric        lyric mode, a line that fits                  -> $OUT (png)
 //   bar-lyric-page1  lyric mode, a long line: its first page       -> $OUT (png)
 //   bar-lyric-page2  lyric mode, the same line: its second page    -> $OUT (png)
-//   panel            the popup: cover, three lyric lines, controls -> $OUT (png)
+//   panel            the popup: mini player, liked, three lines    -> $OUT (png)
+//   panel-unliked    the popup: not liked, a short line            -> $OUT (png)
 //   panel-hint       the popup with Visual Bridge off              -> $OUT (png)
 ShellRoot {
   id: shell
@@ -83,13 +85,14 @@ ShellRoot {
     property bool bridgeOn: true
     property string mode: "title"
     property string frameFile: "state.json"
+    property bool running: true
     // A page other than the first, for the paging captures.
     property int page: 0
     width: barRow.implicitWidth + Style.space(28)
     height: Style.bar.sizeHorizontal
     color: Commons.Color.bar.background
 
-    MockCanto { id: mock; bridgeOn: strip.bridgeOn; frameFile: strip.frameFile }
+    MockCanto { id: mock; bridgeOn: strip.bridgeOn; frameFile: strip.frameFile; running: strip.running }
 
     Row {
       id: barRow
@@ -136,8 +139,9 @@ ShellRoot {
   Component {
     id: barScene
     BarStrip {
-      bridgeOn: shell.mode !== "bar"
-      mode: shell.mode === "bar" ? "title" : "lyric"
+      bridgeOn: shell.mode !== "bar" && shell.mode !== "bar-closed"
+      running: shell.mode !== "bar-closed"
+      mode: shell.mode === "bar" || shell.mode === "bar-closed" ? "title" : "lyric"
       frameFile: shell.mode === "bar-lyric" ? "state-short.json" : "state.json"
       page: shell.mode === "bar-lyric-page2" ? 1 : 0
     }
@@ -147,6 +151,7 @@ ShellRoot {
   component PopupFrame: Rectangle {
     id: frame
     property bool bridgeOn: true
+    property string frameFile: "state.json"
     readonly property int pad: Style.spacing.popupPadding
     width: view.implicitWidth + pad * 2
     height: view.implicitHeight + pad * 2
@@ -155,7 +160,7 @@ ShellRoot {
     border.color: Commons.Color.popups.border
     radius: Style.cornerRadius
 
-    MockCanto { id: popupMock; bridgeOn: frame.bridgeOn }
+    MockCanto { id: popupMock; bridgeOn: frame.bridgeOn; frameFile: frame.frameFile }
 
     W.NowPlayingView {
       id: view
@@ -166,13 +171,17 @@ ShellRoot {
       source: popupMock
       tr: popupMock.tr
       foreground: Commons.Color.popups.text
+      background: Commons.Color.popups.background
       animate: false
     }
   }
 
   Component {
     id: panelScene
-    PopupFrame { bridgeOn: shell.mode !== "panel-hint" }
+    PopupFrame {
+      bridgeOn: shell.mode !== "panel-hint"
+      frameFile: shell.mode === "panel-unliked" ? "state-short.json" : "state.json"
+    }
   }
 
   Component {

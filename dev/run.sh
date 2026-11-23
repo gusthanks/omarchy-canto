@@ -6,11 +6,13 @@
 # and nothing reads D-Bus/MPRIS or the real Visual Bridge file.
 #
 #   dev/run.sh preview          the pills and the popup in a window
-#   dev/run.sh bar              docs/bar.png              (controls + Title · Artist)
+#   dev/run.sh bar              docs/bar.png              (icon, controls, Title · Artist)
+#   dev/run.sh bar-closed       docs/bar-closed.png       (Canto closed: the dimmed icon)
 #   dev/run.sh bar-lyric        docs/bar-lyric.png        (lyric mode, a line that fits)
 #   dev/run.sh bar-lyric-page1  docs/bar-lyric-page1.png  (a long line, first page)
 #   dev/run.sh bar-lyric-page2  docs/bar-lyric-page2.png  (the same line, second page)
-#   dev/run.sh panel            docs/panel.png            (the popup: three lyric lines)
+#   dev/run.sh panel            docs/panel.png            (mini player layout, liked, 3 lines)
+#   dev/run.sh panel-unliked    docs/panel-unliked.png    (not liked, a short line)
 #   dev/run.sh panel-hint       docs/panel-hint.png       (the popup with Visual Bridge off)
 #   dev/run.sh docs         all of the captures above
 #   dev/run.sh check        compile every plugin type, BarWidget.qml included
@@ -65,10 +67,10 @@ case "${1:-preview}" in
   preview)    MODE=preview "${qs[@]}" -p "$cfg/shell.qml" ;;
   bar)        render bar        "$repo/docs/bar$suffix.png" ;;
   bar-lyric)  render bar-lyric  "$repo/docs/bar-lyric$suffix.png" ;;
-  bar-lyric-page1|bar-lyric-page2) render "$1" "$repo/docs/$1$suffix.png" ;;
+  bar-closed|bar-lyric-page1|bar-lyric-page2|panel-unliked) render "$1" "$repo/docs/$1$suffix.png" ;;
   panel)      render panel      "$repo/docs/panel$suffix.png" ;;
   panel-hint) render panel-hint "$repo/docs/panel-hint$suffix.png" ;;
-  docs)       for m in bar bar-lyric bar-lyric-page1 bar-lyric-page2 panel panel-hint; do "$0" "$m"; done ;;
+  docs)       for m in bar bar-closed bar-lyric bar-lyric-page1 bar-lyric-page2 panel panel-unliked panel-hint; do "$0" "$m"; done ;;
   test)       nice -n 19 node --test "$repo/dev/tests/" ;;
   check)
     # Compile-only: types are declared inside Components that never get created,
@@ -84,5 +86,5 @@ case "${1:-preview}" in
     grep -a 'CHECK ' "$cfg/check.log" | sed 's/^.*CHECK /CHECK /'
     grep -a 'CHECK ' "$cfg/check.log" | grep -q . || { echo "check produced no output (log: $cfg/check.log)" >&2; exit 1; }
     ! grep -a 'CHECK ' "$cfg/check.log" | grep -vq ' OK$' ;;
-  *) sed -n '2,25p' "$0"; exit 1 ;;
+  *) sed -n '2,27p' "$0"; exit 1 ;;
 esac
