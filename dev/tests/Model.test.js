@@ -14,6 +14,7 @@ new Function('module', readFileSync(join(root, 'Model.js'), 'utf8'))(mod)
 const {
   cantoRank, pickCantoPlayer, artistLine, trackLabel, labelWidth,
   normalizedMode, otherMode, showsLyric, paginate, pageInterval, lyricHistory,
+  neighborLines, progressFraction,
   parseBridge, bridgeLyric, wheelStep, STALE_MS
 } = mod.exports
 
@@ -150,6 +151,17 @@ describe('lyricHistory', () => {
     h = lyricHistory(h, 'line two', 'T', 9000)
     assert.equal(h.previous, 'line one')
   })
+  it('never remembers the current line as the previous one', () => {
+    // The popup opens: the bridge is read again and the same line comes back.
+    let h = lyricHistory(null, 'line one', 'T', 1000)
+    h = lyricHistory(h, '', 'T', 2000)
+    h = lyricHistory(h, 'line one', 'T', 2100)
+    assert.equal(h.line, 'line one')
+    assert.notEqual(h.previous, h.line)
+    assert.equal(h.previous, '')
+    h = lyricHistory(h, 'line two', 'T', 4000)
+    assert.equal(h.previous, 'line one')
+  })
   it('ignores durations from seeks or pauses, starts over on a new track', () => {
     let h = lyricHistory(null, 'a', 'T', 1000)
     h = lyricHistory(h, 'b', 'T', 3000)
@@ -158,6 +170,28 @@ describe('lyricHistory', () => {
     h = lyricHistory(h, 'x', 'U', 61000)
     assert.equal(h.previous, '')
     assert.equal(h.lineMs, 0)
+  })
+})
+
+describe('neighborLines', () => {
+  it('keeps distinct lines', () => {
+    assert.deepEqual(neighborLines('b', 'a', 'c'), { previous: 'a', next: 'c' })
+  })
+  it('drops a neighbor that repeats the current line', () => {
+    assert.deepEqual(neighborLines('Same line', ' same  line ', 'next'), { previous: '', next: 'next' })
+    assert.deepEqual(neighborLines('x', 'a', 'X'), { previous: 'a', next: '' })
+  })
+  it('during a break (no current line) shows both', () => {
+    assert.deepEqual(neighborLines('', 'a', 'b'), { previous: 'a', next: 'b' })
+  })
+})
+
+describe('progressFraction', () => {
+  it('maps position to 0..1 and survives a missing length', () => {
+    assert.equal(progressFraction(50, 200), 0.25)
+    assert.equal(progressFraction(500, 200), 1)
+    assert.equal(progressFraction(-5, 200), 0)
+    assert.equal(progressFraction(50, 0), 0)
   })
 })
 
@@ -183,6 +217,15 @@ describe('Visual Bridge', () => {
   it('an older Canto without those keys says so', () => {
     const f = parseBridge('{"app":"canto","active":true,"lyric":"x"}')
     assert.deepEqual([f.hasNeighbors, f.previous, f.next, f.endsInMs], [false, '', '', 0])
+    assert.equal(f.liked, null)
+  })
+  it('reads liked as true, false or unknown, and the track progress', () => {
+    assert.equal(parseBridge(mockText).liked, true)
+    assert.equal(parseBridge('{"app":"canto","liked":false}').liked, false)
+    assert.equal(parseBridge('{"app":"canto","liked":null}').liked, null)
+    assert.equal(parseBridge('{"app":"canto","liked":"yes"}').liked, null)
+    const f = parseBridge(mockText)
+    assert.ok(f.progressMs > 0 && f.durationMs > f.progressMs)
   })
   it('rejects broken, empty or foreign files so the last frame is kept', () => {
     assert.equal(parseBridge(''), null)

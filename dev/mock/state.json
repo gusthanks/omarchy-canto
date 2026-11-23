@@ -15,6 +15,7 @@
   "lyric": "we kept the porch light burning and the tide came in anyway",
   "lyric_previous": "we left the lanterns on the sill",
   "lyric_next": "so we learned to sleep with the windows open",
+  "liked": true,
   "lyric_ends_in_ms": 4200,
   "audio": {
     "rms": 0.31,

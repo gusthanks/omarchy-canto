@@ -146,6 +146,11 @@ function parseBridge(text) {
     previous: typeof data.lyric_previous === "string" ? data.lyric_previous.trim() : "",
     next: typeof data.lyric_next === "string" ? data.lyric_next.trim() : "",
     endsInMs: Math.max(0, Number(data.lyric_ends_in_ms) || 0),
+    // true / false, or null when Canto does not know (not a Spotify track)
+    // or is too old to say: the heart is hidden then.
+    liked: data.liked === true ? true : (data.liked === false ? false : null),
+    progressMs: track ? Math.max(0, Number(track.progress_ms) || 0) : 0,
+    durationMs: track ? Math.max(0, Number(track.duration_ms) || 0) : 0,
     updatedAt: Number(data.updated_at_ms) || 0
   }
 }
@@ -175,6 +180,28 @@ function bridgeLyric(frame, mprisTitle, mprisPlaying, now) {
   return bridgeFrameValid(frame, mprisTitle, mprisPlaying, now) ? frame.lyric : ""
 }
 
+function normalizedLine(s) {
+  return String(s || "").replace(/\s+/g, " ").trim().toLowerCase()
+}
+
+// The lines the popup shows around the current one, with a repeat of the
+// current line dropped (a song can repeat a line; showing it twice in a row
+// reads as a glitch).
+function neighborLines(current, previous, next) {
+  var c = normalizedLine(current)
+  var p = String(previous || "").trim()
+  var n = String(next || "").trim()
+  if (c && normalizedLine(p) === c) p = ""
+  if (c && normalizedLine(n) === c) n = ""
+  return { previous: p, next: n }
+}
+
+// Playback position as 0..1 for the popup's progress line.
+function progressFraction(positionMs, lengthMs) {
+  if (!(lengthMs > 0)) return 0
+  return Math.max(0, Math.min(1, (Number(positionMs) || 0) / lengthMs))
+}
+
 // A tiny memory of the lyric, fed each time the line changes: the line before
 // the current one (the popup shows it above) and how long the last line
 // lasted (the page timing estimate). It starts over on a new track. A
@@ -186,12 +213,17 @@ function lyricHistory(state, lyric, trackKey, now) {
     return { track: trackKey, line: line, previous: "", changedAt: line ? now : 0, lineMs: 0 }
   if (line === s.line) return s
   if (!line) return { track: s.track, line: "", previous: s.line || s.previous || "", changedAt: s.changedAt || 0, lineMs: s.lineMs || 0 }
+  // The line before this one, never this line itself: after a gap (a break,
+  // or the bridge read again when the popup opens) the same line can come
+  // back, and the remembered "previous" would then be the current line.
+  var previous = s.line || s.previous || ""
+  if (normalizedLine(previous) === normalizedLine(line)) previous = ""
   var lineMs = s.lineMs || 0
   if (s.line && s.changedAt) {
     var lasted = now - s.changedAt
     if (lasted >= 300 && lasted <= 15000) lineMs = lasted
   }
-  return { track: s.track, line: line, previous: s.line || s.previous || "", changedAt: now, lineMs: lineMs }
+  return { track: s.track, line: line, previous: previous, changedAt: now, lineMs: lineMs }
 }
 
 // Mouse wheel to next/previous. Touchpads send many small deltas, so they add
@@ -227,6 +259,8 @@ if (typeof module !== "undefined" && module.exports) {
     bridgeFrameValid: bridgeFrameValid,
     bridgeLyric: bridgeLyric,
     lyricHistory: lyricHistory,
+    neighborLines: neighborLines,
+    progressFraction: progressFraction,
     wheelStep: wheelStep,
     STALE_MS: STALE_MS
   }
