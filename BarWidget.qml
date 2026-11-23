@@ -5,15 +5,16 @@ import qs.Commons as Commons
 import qs.Ui
 import "Model.js" as Model
 
-// Canto Now Playing: what Canto is playing, in the bar. Hidden while Canto is
-// not running or has no track, like Omarchy's own media widget.
-//   buttons        previous / play-pause / next
+// Canto Now Playing: what Canto is playing, in the bar.
+//   Canto icon     raise Canto's window, or start Canto when it is closed
+//   buttons        previous / play-pause / next (and the heart, if shown)
 //   click the text title mode <-> lyric mode (saved as startMode)
 //   middle click   next track
-//   right click    the popup (cover, lyric lines, previous / play / next)
+//   right click    the popup (Canto's mini player layout and lyric lines)
 //   wheel          up: previous, down: next
-// Settings (shell.json entry or the bar settings form): showControls,
-// startMode ("title" or "lyric"), maxWidth.
+// With Canto closed the pill is just the dimmed icon (showWhenClosed), or
+// hidden. Settings (shell.json entry or the bar settings form):
+// showControls, showLike, showWhenClosed, startMode, popupLyrics, maxWidth.
 BarWidget {
   id: root
   moduleName: "gusthx.canto"
@@ -25,22 +26,31 @@ BarWidget {
   function tr(key, fallback) { return strings.t(key, fallback) }
 
   // "false" too: shell.json may hold the setting as a string.
-  readonly property bool showControls: String(setting("showControls", true)) !== "false"
+  function flag(name, fallback) {
+    var v = setting(name, fallback)
+    return String(v) !== "false" && v !== false
+  }
+  readonly property bool showControls: flag("showControls", true)
+  readonly property bool showLike: flag("showLike", false)
+  readonly property bool showWhenClosed: flag("showWhenClosed", true)
+  readonly property bool popupLyrics: flag("popupLyrics", true)
   readonly property int maxWidth: Style.space(Model.labelWidth(setting("maxWidth", 240), 240))
   readonly property string mode: Model.normalizedMode(setting("startMode", "title"))
 
-  // Clicking the text switches modes and saves the choice in startMode, the
-  // way Omarchy's clock saves its format: applied here first so the pill
-  // changes on the click, then written to shell.json, which comes back
-  // through the bar as the same value. The setting survives restarts.
-  function toggleMode() {
+  // Clicks that change a setting (the text's mode, the popup's lyrics
+  // toggle) save it the way Omarchy's clock saves its format: applied here
+  // first so the change shows on the click, then written to shell.json, which
+  // comes back through the bar as the same value. It survives restarts.
+  function saveSetting(name, value) {
     var entry = { id: root.moduleName }
     for (var key in root.settings) if (key !== "id") entry[key] = root.settings[key]
-    entry.startMode = Model.otherMode(root.mode)
+    entry[name] = value
     root.settings = entry
     if (root.bar && root.bar.shell && typeof root.bar.shell.updateEntryInline === "function")
       root.bar.shell.updateEntryInline(root.moduleName, entry)
   }
+  function toggleMode() { saveSetting("startMode", Model.otherMode(root.mode)) }
+  function toggleLyrics() { saveSetting("popupLyrics", !root.popupLyrics) }
 
   property bool popupOpen: false
   readonly property bool opened: popupOpen
@@ -50,11 +60,17 @@ BarWidget {
 
   CantoSource {
     id: canto
-    wantLyric: root.mode === "lyric" || root.popupOpen
+    wantBridge: root.mode === "lyric" || root.popupOpen || root.showLike
+    trackProgress: root.popupOpen
   }
 
-  visible: canto.hasTrack
+  visible: canto.hasTrack || root.showWhenClosed
   onVisibleChanged: if (!visible) close()
+  // The popup is about a track: it closes when there is none.
+  Connections {
+    target: canto
+    function onHasTrackChanged() { if (!canto.hasTrack) root.close() }
+  }
   implicitWidth: visible ? pill.implicitWidth : 0
   implicitHeight: barSize
 
@@ -66,6 +82,7 @@ BarWidget {
     tr: root.tr
     mode: root.mode
     showControls: root.showControls
+    showLike: root.showLike
     maxWidth: root.maxWidth
     onToggleRequested: root.toggleMode()
     onPopupRequested: root.toggle()
@@ -97,6 +114,8 @@ BarWidget {
       animate: root.popupOpen
       // The cover is fetched only while the popup is open, not on every track change.
       loadArt: root.popupOpen
+      showLyrics: root.popupLyrics
+      onLyricsToggled: root.toggleLyrics()
     }
   }
 }

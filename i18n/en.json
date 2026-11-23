@@ -2,10 +2,15 @@
   "canto.bridgeHint": "Lyrics show here when Visual Bridge is on in Canto (Preferences, Integrations).",
   "canto.clickForLyric": "Click to show the lyric line",
   "canto.clickForTitle": "Click to show the title",
+  "canto.hideLyrics": "Hide the lyrics",
+  "canto.like": "Save to Liked Songs",
   "canto.next": "Next",
   "canto.nothingPlaying": "Nothing playing in Canto",
   "canto.open": "Open Canto",
   "canto.pause": "Pause",
   "canto.play": "Play",
-  "canto.previous": "Previous"
+  "canto.previous": "Previous",
+  "canto.showLyrics": "Show the lyrics",
+  "canto.start": "Start Canto",
+  "canto.unlike": "Remove from Liked Songs"
 }

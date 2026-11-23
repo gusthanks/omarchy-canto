@@ -2,10 +2,15 @@
   "canto.bridgeHint": "A letra aparece aqui com a Ponte Visual ligada no Canto (Preferências, Integrações).",
   "canto.clickForLyric": "Clique para mostrar a letra",
   "canto.clickForTitle": "Clique para mostrar o título",
+  "canto.hideLyrics": "Esconder a letra",
+  "canto.like": "Salvar nas Músicas Curtidas",
   "canto.next": "Próxima",
   "canto.nothingPlaying": "Nada tocando no Canto",
   "canto.open": "Abrir o Canto",
   "canto.pause": "Pausar",
   "canto.play": "Tocar",
-  "canto.previous": "Anterior"
+  "canto.previous": "Anterior",
+  "canto.showLyrics": "Mostrar a letra",
+  "canto.start": "Abrir o Canto",
+  "canto.unlike": "Remover das Músicas Curtidas"
 }

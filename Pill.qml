@@ -4,7 +4,11 @@ import qs.Commons as Commons
 import qs.Ui
 import "Model.js" as Model
 
-// The bar pill: [previous] [play/pause] [next], then the text area.
+// The bar pill: [Canto] [previous] [play/pause] [next] [heart], then the
+// text area. The Canto icon raises Canto's window, or starts Canto when it is
+// closed; then it is all the pill shows, dimmed (showWhenClosed). The heart
+// is optional (showLike) and hidden while Canto cannot say if the track is
+// liked.
 //
 // The text area shows "Title · Artist" (title mode, a music note in front)
 // or the current synced lyric line (lyric mode, a microphone in front).
@@ -25,6 +29,7 @@ Item {
   property var source: null
   property string mode: "title"
   property bool showControls: true
+  property bool showLike: false
   property int maxWidth: Style.space(240)
   property var tr: function(key, fallback) { return fallback !== undefined ? fallback : key }
   // The host routes these to its mode toggle, popup and wheel guard.
@@ -43,6 +48,8 @@ Item {
   readonly property string lyric: source ? source.lyric : ""
   readonly property bool showingLyric: Model.showsLyric(mode, lyric)
   readonly property string trackText: source ? Model.trackLabel(source.title, source.artist) : ""
+  readonly property bool running: !!source && source.running
+  readonly property bool hasTrack: !!source && source.hasTrack
 
   // ---- Lyric pages. Measured with the font the line is drawn in.
   FontMetrics {
@@ -99,7 +106,7 @@ Item {
     ? maxWidth
     : Math.min(maxWidth, Math.ceil(showingLyric ? lyricMetrics.advanceWidth(text) : titleMetrics.advanceWidth(text)))
 
-  implicitWidth: vertical ? playButton.implicitWidth : row.implicitWidth
+  implicitWidth: vertical ? cantoButton.implicitWidth : row.implicitWidth
   implicitHeight: bar ? bar.barSize : Style.bar.sizeHorizontal
 
   Row {
@@ -107,10 +114,36 @@ Item {
     anchors.verticalCenter: parent.verticalCenter
     spacing: 0
 
+    BarIconButton {
+      id: cantoButton
+      anchors.verticalCenter: parent.verticalCenter
+      bar: root.bar
+      slotSize: Style.bar.statusSlot
+      tooltipText: root.running ? root.tr("canto.open", "Open Canto") : root.tr("canto.start", "Start Canto")
+      iconComponent: Component {
+        Item {
+          CantoIcon {
+            x: (parent.width - width) / 2
+            y: (parent.height - height) / 2
+            size: cantoButton.iconSize
+            // Closed: dimmed, like a paused glyph.
+            color: root.running ? root.foreground : root.dimColor
+          }
+        }
+      }
+      onPressed: function(b) {
+        if (!root.source) return
+        if (b === Qt.RightButton) { if (root.hasTrack) root.popupRequested() }
+        else if (b === Qt.MiddleButton) root.source.next()
+        else root.source.raiseOrLaunch()
+      }
+      onWheelMoved: function(d) { root.wheelMoved(d) }
+    }
+
     Row {
       id: controls
       anchors.verticalCenter: parent.verticalCenter
-      visible: root.showControls || root.vertical
+      visible: root.showControls && root.hasTrack && !root.vertical
       // Transport controls keep previous, play, next in every language.
       LayoutMirroring.enabled: false
       LayoutMirroring.childrenInherit: true
@@ -118,7 +151,6 @@ Item {
       BarIconButton {
         id: previousButton
         anchors.verticalCenter: parent.verticalCenter
-        visible: !root.vertical
         bar: root.bar
         text: "󰒮"
         slotSize: Style.bar.statusSlot
@@ -141,7 +173,6 @@ Item {
       BarIconButton {
         id: nextButton
         anchors.verticalCenter: parent.verticalCenter
-        visible: !root.vertical
         bar: root.bar
         text: "󰒭"
         slotSize: Style.bar.statusSlot
@@ -152,12 +183,24 @@ Item {
       }
     }
 
+    BarIconButton {
+      id: likeButton
+      anchors.verticalCenter: parent.verticalCenter
+      visible: root.showLike && root.hasTrack && !root.vertical && !!root.source && root.source.likedKnown
+      bar: root.bar
+      text: root.source && root.source.liked ? "󰋑" : "󰋕"
+      slotSize: Style.bar.statusSlot
+      tooltipText: root.source && root.source.liked ? root.tr("canto.unlike", "Remove from Liked Songs") : root.tr("canto.like", "Save to Liked Songs")
+      onPressed: function(b) { root.buttonPressed(b, function() { root.source.toggleLiked() }) }
+      onWheelMoved: function(d) { root.wheelMoved(d) }
+    }
+
     // The text area: the mode glyph and the text. Click switches the mode.
     Item {
       id: textArea
       anchors.verticalCenter: parent.verticalCenter
-      visible: !root.vertical && root.trackText !== ""
-      readonly property real leftPad: controls.visible ? Style.space(11) : Style.space(8)
+      visible: !root.vertical && root.hasTrack && root.trackText !== ""
+      readonly property real leftPad: Style.space(11)
       readonly property real rightPad: Style.space(8)
       width: leftPad + glyph.implicitWidth + Style.space(7) + root.labelWidth + rightPad
       height: root.implicitHeight
