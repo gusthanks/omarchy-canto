@@ -284,6 +284,17 @@ describe('wheelStep', () => {
   })
 })
 
+describe('trackLink', () => {
+  it('turns Canto\'s MPRIS trackid into a spotify: track link', () => {
+    assert.equal(mod.exports.trackLink('/io/github/gusthanks/Canto/Track/MadeUpTrack0123'), 'spotify:track:MadeUpTrack0123')
+  })
+  it('gives nothing for other players, empty or odd ids', () => {
+    for (const id of [undefined, null, '', '/org/mpris/MediaPlayer2/TrackList/NoTrack',
+      '/io/github/gusthanks/Canto/Track/', '/io/github/gusthanks/Canto/Track/a b', 'spotify:track:abc'])
+      assert.equal(mod.exports.trackLink(id), '', String(id))
+  })
+})
+
 describe('i18n catalogs', () => {
   it('pt-BR carries every English key and nothing else', () => {
     assert.deepEqual(Object.keys(catalog('pt-BR')).sort(), Object.keys(catalog('en')).sort())

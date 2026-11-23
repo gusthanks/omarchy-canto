@@ -31,7 +31,7 @@ button.
   with the play button as an accent circle, a lyrics toggle and the heart on the right, and
   a thin progress line along the bottom. With the lyrics toggle on (it is remembered), the
   line before, the current line (larger) and the next one, whole and wrapped. Click the
-  cover or the title to bring Canto's window up.
+  cover to open the album in Canto, or the title to bring Canto's window up.
 - **Like from the bar**: the heart saves the track to your Liked Songs, or removes it. It
   fills at once and follows what Canto reports. It hides when Canto cannot say (an older
   Canto, or a track that is not on Spotify).

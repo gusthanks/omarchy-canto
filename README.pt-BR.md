@@ -32,7 +32,7 @@ player do Canto, com a letra em volta da linha atual e um botão de curtir.
   com o botão de tocar num círculo na cor de destaque, o botão de letra e o coração à direita,
   e uma linha fina de progresso embaixo. Com o botão de letra ligado (ele fica lembrado), a
   linha anterior, a atual (maior) e a próxima, inteiras e quebradas em linhas. Clique na capa
-  ou no título para trazer a janela do Canto.
+  para abrir o álbum no Canto, ou no título para trazer a janela do Canto.
 - **Curtir pela barra**: o coração salva a faixa nas suas Músicas Curtidas, ou tira. Ele
   enche na hora e segue o que o Canto informa. Some quando o Canto não sabe dizer (um Canto
   mais antigo, ou uma faixa que não é do Spotify).

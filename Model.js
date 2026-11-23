@@ -242,6 +242,14 @@ function wheelStep(state, deltaY, now) {
   return { acc: acc, last: last, action: "" }
 }
 
+// The spotify: link of the track Canto's MPRIS trackid names
+// (/io/github/gusthanks/Canto/Track/<id>), or "" for anything else. Canto opens
+// a track link as that track's album.
+function trackLink(trackid) {
+  var m = /^\/io\/github\/gusthanks\/Canto\/Track\/([A-Za-z0-9]+)$/.exec(String(trackid || ""))
+  return m ? "spotify:track:" + m[1] : ""
+}
+
 if (typeof module !== "undefined" && module.exports) {
   module.exports = {
     cantoRank: cantoRank,
@@ -262,6 +270,7 @@ if (typeof module !== "undefined" && module.exports) {
     neighborLines: neighborLines,
     progressFraction: progressFraction,
     wheelStep: wheelStep,
+    trackLink: trackLink,
     STALE_MS: STALE_MS
   }
 }

@@ -72,6 +72,7 @@ Item {
   function next() {}
   function previous() {}
   function raise() {}
+  function openAlbum() {}
   function launch() {}
   function raiseOrLaunch() {}
   function toggleLiked() { if (likedKnown) likedOverride = !liked }

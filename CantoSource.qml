@@ -96,6 +96,15 @@ Item {
   function previous() { if (player && player.canGoPrevious) player.previous() }
   function raise() { if (player && player.canRaise) player.raise() }
 
+  // The playing track's album, in Canto: the window comes up and Canto opens
+  // the track's spotify: link as its album (MPRIS OpenUri). Without a link
+  // (no Spotify track) only the window comes up.
+  readonly property string trackLink: player && player.metadata ? Model.trackLink(player.metadata["mpris:trackid"]) : ""
+  function openAlbum() {
+    root.raise()
+    if (player && root.trackLink !== "") player.openUri(root.trackLink)
+  }
+
   // Starts Canto: gtk-launch finds the native or the Flatpak install by its
   // app id; plain `canto` is the fallback.
   function launch() {

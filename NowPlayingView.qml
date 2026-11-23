@@ -101,8 +101,8 @@ Item {
           enabled: !!root.source && root.source.canRaise
           cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
           Accessible.role: Accessible.Button
-          Accessible.name: root.tr("canto.open", "Open Canto")
-          onClicked: root.source.raise()
+          Accessible.name: root.tr("canto.openAlbum", "Open the album in Canto")
+          onClicked: root.source.openAlbum()
         }
       }
 
