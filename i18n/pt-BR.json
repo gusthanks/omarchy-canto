@@ -1,7 +1,8 @@
 {
   "canto.bridgeHint": "A letra aparece aqui com a Ponte Visual ligada no Canto (Preferências, Integrações).",
-  "canto.clickForLyric": "Clique para mostrar a letra",
-  "canto.clickForTitle": "Clique para mostrar o título",
+  "canto.clickForLyric": "Clique com o botão direito para mostrar a letra",
+  "canto.clickForPopup": "Clique para abrir o player",
+  "canto.clickForTitle": "Clique com o botão direito para mostrar o título",
   "canto.hideLyrics": "Esconder a letra",
   "canto.like": "Salvar nas Músicas Curtidas",
   "canto.next": "Próxima",

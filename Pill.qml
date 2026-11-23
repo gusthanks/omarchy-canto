@@ -12,8 +12,8 @@ import "Model.js" as Model
 //
 // The text area shows "Title · Artist" (title mode, a music note in front)
 // or the current synced lyric line (lyric mode, Canto's lyrics icon in front).
-// Clicking it switches modes (toggleRequested). A lyric line wider than
-// maxWidth is never cut: it is split into pages at word boundaries, page 1
+// A right click switches modes (toggleRequested), a click opens the popup.
+// A lyric line wider than maxWidth is never cut: it is split into pages at word boundaries, page 1
 // first, then the next ones on a timer, timed to end before the next line
 // when Canto says when that is. A new line starts again at page 1. With no
 // line to show (Visual Bridge off, an instrumental break, unsynced lyrics)
@@ -249,9 +249,11 @@ Item {
         acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
         onClicked: function(mouse) {
           if (root.bar) root.bar.hideTooltip(textArea)
-          if (mouse.button === Qt.RightButton) root.popupRequested()
+          // A click opens the popup (the player and the whole lyric); a right
+          // click switches the pill between the title and the lyric line.
+          if (mouse.button === Qt.RightButton) root.toggleRequested()
           else if (mouse.button === Qt.MiddleButton) { if (root.source) root.source.next() }
-          else root.toggleRequested()
+          else root.popupRequested()
         }
         onWheel: function(wheel) { root.wheelMoved(wheel.angleDelta.y) }
         onEntered: if (root.bar) root.bar.showTooltip(textArea, root.tooltip())
@@ -273,8 +275,9 @@ Item {
   function tooltip() {
     if (!root.source) return ""
     var lines = [root.trackText]
-    lines.push(root.lyricMode ? root.tr("canto.clickForTitle", "Click to show the title")
-                              : root.tr("canto.clickForLyric", "Click to show the lyric line"))
+    lines.push(root.tr("canto.clickForPopup", "Click to open the player"))
+    lines.push(root.lyricMode ? root.tr("canto.clickForTitle", "Right-click to show the title")
+                              : root.tr("canto.clickForLyric", "Right-click to show the lyric line"))
     if (root.lyricMode && !root.source.bridgeAvailable)
       lines.push(root.tr("canto.bridgeHint", "Lyrics show here when Visual Bridge is on in Canto (Preferences, Integrations)."))
     return lines.join("\n")

@@ -1,7 +1,8 @@
 {
   "canto.bridgeHint": "Lyrics show here when Visual Bridge is on in Canto (Preferences, Integrations).",
-  "canto.clickForLyric": "Click to show the lyric line",
-  "canto.clickForTitle": "Click to show the title",
+  "canto.clickForLyric": "Right-click to show the lyric line",
+  "canto.clickForPopup": "Click to open the player",
+  "canto.clickForTitle": "Right-click to show the title",
   "canto.hideLyrics": "Hide the lyrics",
   "canto.like": "Save to Liked Songs",
   "canto.next": "Next",

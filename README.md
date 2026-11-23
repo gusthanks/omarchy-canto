@@ -4,8 +4,8 @@
 
 What [Canto](https://github.com/gusthanks/canto) is playing, in the [Omarchy](https://omarchy.org)
 bar: Canto's icon, previous / play-pause / next, then the title and artist, or the line of
-the song being sung right now. Click the text to switch between the two. Right-click for a
-popup laid out like Canto's mini player, with the lyric around the current line and a like
+the song being sung right now. Right-click the text to switch between the two. Click it for
+a popup laid out like Canto's mini player, with the lyric around the current line and a like
 button.
 
 <p align="center"><img src="docs/bar.png" width="600" alt="The bar: the Canto icon, previous, pause and next buttons, a music note, Paper Lanterns · Lumen Coast"></p>
@@ -18,15 +18,15 @@ button.
 - **Controls and the track**: small previous / play-pause / next buttons, then a music note
   and *Title · Artist* (cut with an ellipsis past the width you choose). Dimmed while
   paused. The buttons can be turned off, and a like button (a heart) can be turned on.
-- **Click the text for the lyric**: the text switches to the synced line being sung, in
-  italic and with Canto's lyrics icon in front, so it never reads as a title. Click again for the
-  title. The choice is saved and survives a restart.
+- **Right-click the text for the lyric**: the text switches to the synced line being sung, in
+  italic and with Canto's lyrics icon in front, so it never reads as a title. Right-click again for
+  the title. The choice is saved and survives a restart.
 - **Never cut**: a line wider than the pill is shown in pages that break between words,
   page 1, then page 2, timed to finish before the next line starts. A new line always
   starts at page 1. No scrolling text, no animation running all the time.
 - **Never confusing**: with no line to show (Visual Bridge off, an instrumental break, a song
   without synced lyrics) lyric mode shows the title with the lyrics icon dimmed. Hover the
-  text for the track, what a click does, and, if needed, where to turn lyrics on.
+  text for the track, what each click does, and, if needed, where to turn lyrics on.
 - **A popup like Canto's mini player**: the cover, title and artist, previous / play / next
   with the play button as an accent circle, a lyrics toggle and the heart on the right, and
   a thin progress line along the bottom. With the lyrics toggle on (it is remembered), the
@@ -94,11 +94,12 @@ Update with `omarchy plugin update gusthx.canto --yes`, then `omarchy restart sh
 | Canto icon | Bring Canto's window up, or start Canto when it is closed |
 | Previous / play-pause / next buttons | What they say |
 | Heart (if turned on) | Like or unlike the track |
-| Click the text | Switch between the title and the lyric line (saved) |
+| Click the text | Open or close the popup |
+| Right-click the text | Switch between the title and the lyric line (saved) |
+| Right-click the icon or a button | Open or close the popup |
 | Middle click | Next track |
-| Right click | Open or close the popup |
 | Scroll up / down | Previous / next track (one per touchpad swipe) |
-| Hover the text | The track, what a click does, and where to turn lyrics on if needed |
+| Hover the text | The track, what each click does, and where to turn lyrics on if needed |
 
 ## Configuration
 
@@ -113,7 +114,7 @@ omarchy bar set gusthx.canto popupLyrics false --json     # no lyric lines in th
 omarchy bar set gusthx.canto maxWidth 320 --json          # wider text (120 to 600, default 240)
 ```
 
-Clicking the text in the bar changes `startMode` for you, and the popup's lyrics button
+Right-clicking the text in the bar changes `startMode` for you, and the popup's lyrics button
 changes `popupLyrics`. `maxWidth` is in pixels before
 your display scaling: a longer lyric line pages, a longer title gets an ellipsis.
 
@@ -127,8 +128,8 @@ No account, no telemetry, no logs.
 What it **reads**: Canto's MPRIS player on the session D-Bus (track, artists, album, cover
 link, playing state, position), and, only while lyric mode is on, the heart is in the bar or
 the popup is open, `$XDG_RUNTIME_DIR/canto/state.json`. It **writes** only its own
-`startMode` and `popupLyrics` settings to `~/.config/omarchy/shell.json`, when you click the
-text or the popup's lyrics button, through the shell (as Omarchy's clock saves its format).
+`startMode` and `popupLyrics` settings to `~/.config/omarchy/shell.json`, when you right-click
+the text or the popup's lyrics button, through the shell (as Omarchy's clock saves its format).
 
 What it **runs**: `busctl --user call ... ToggleLiked` when you click the heart (Canto's own
 D-Bus method), and `gtk-launch io.github.gusthanks.Canto` (or `canto`) when you start Canto

@@ -25,6 +25,9 @@
 - The pill's Canto icon is drawn at about 70% of the bar height (18 px on the default bar),
   over an empty icon slot, as the bar's other picture icons are: as a button icon the bar
   fitted it to a 12 px glyph.
+- Clicks on the text are swapped: a click opens the popup, a right click switches between
+  the title and the lyric line. The tooltip says both. The icon and the buttons still open
+  the popup on a right click.
 - The lyrics toggle and lyric mode use Canto's own lyrics icon (a speech bubble with quotes,
   Material Design `comment-quote-outline`) instead of a microphone.
 

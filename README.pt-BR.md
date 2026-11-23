@@ -4,12 +4,12 @@
 
 O que o [Canto](https://github.com/gusthanks/canto) está tocando, na barra do
 [Omarchy](https://omarchy.org): o ícone do Canto, anterior / tocar-pausar / próxima, depois o
-título e o artista, ou a linha da música que está sendo cantada agora. Clique no texto para
-alternar entre os dois. Clique com o botão direito para abrir um popup no formato do mini
+título e o artista, ou a linha da música que está sendo cantada agora. Clique com o botão direito
+no texto para alternar entre os dois. Clique nele para abrir um popup no formato do mini
 player do Canto, com a letra em volta da linha atual e um botão de curtir.
 
 <p align="center"><img src="docs/bar.png" width="600" alt="A barra: o ícone do Canto, botões anterior, pausar e próxima, uma nota musical, Paper Lanterns · Lumen Coast"></p>
-<p align="center"><img src="docs/bar-lyric.png" width="600" alt="Modo letra: um microfone e a linha sincronizada atual, em itálico"></p>
+<p align="center"><img src="docs/bar-lyric.png" width="600" alt="Modo letra: o ícone de letra e a linha sincronizada atual, em itálico"></p>
 
 ## O que vem
 
@@ -19,15 +19,15 @@ player do Canto, com a letra em volta da linha atual e um botão de curtir.
   nota musical e *Título · Artista* (cortado com reticências depois da largura que você
   escolher). Fica apagado com a música pausada. Os botões podem ser desligados, e um botão de
   curtir (um coração) pode ser ligado.
-- **Clique no texto para ver a letra**: o texto troca para a linha sincronizada que está sendo
-  cantada, em itálico e com um microfone na frente, para nunca parecer um título. Clique de
-  novo para voltar ao título. A escolha fica salva e sobrevive a um reinício.
+- **Botão direito no texto para ver a letra**: o texto troca para a linha sincronizada que está sendo
+  cantada, em itálico e com o ícone de letra do Canto na frente, para nunca parecer um título.
+  Botão direito de novo volta ao título. A escolha fica salva e sobrevive a um reinício.
 - **Nunca cortado**: uma linha mais larga que a pílula aparece em páginas que quebram entre as
   palavras, página 1, depois página 2, no tempo certo para terminar antes da próxima linha.
   Linha nova sempre começa na página 1. Sem texto rolando, sem animação rodando o tempo todo.
 - **Nunca confuso**: sem linha para mostrar (Ponte Visual desligada, parte instrumental, música
-  sem letra sincronizada), o modo letra mostra o título com o microfone apagado. Passe o mouse
-  no texto para ver a faixa, o que o clique faz e, se precisar, onde ligar a letra.
+  sem letra sincronizada), o modo letra mostra o título com o ícone de letra apagado. Passe o mouse
+  no texto para ver a faixa, o que cada clique faz e, se precisar, onde ligar a letra.
 - **Um popup como o mini player do Canto**: capa, título e artista, anterior / tocar / próxima
   com o botão de tocar num círculo na cor de destaque, o botão de letra e o coração à direita,
   e uma linha fina de progresso embaixo. Com o botão de letra ligado (ele fica lembrado), a
@@ -97,11 +97,12 @@ Para atualizar: `omarchy plugin update gusthx.canto --yes` e depois `omarchy res
 | Ícone do Canto | Traz a janela do Canto, ou abre o Canto quando está fechado |
 | Botões anterior / tocar-pausar / próxima | O que dizem |
 | Coração (se ligado) | Curte ou descurte a faixa |
-| Clique no texto | Alterna entre o título e a letra (fica salvo) |
+| Clique no texto | Abre ou fecha o popup |
+| Clique direito no texto | Alterna entre o título e a letra (fica salvo) |
+| Clique direito no ícone ou num botão | Abre ou fecha o popup |
 | Clique do meio | Próxima faixa |
-| Clique direito | Abre ou fecha o popup |
 | Rolar para cima / para baixo | Faixa anterior / próxima (uma por deslizada no touchpad) |
-| Passar o mouse no texto | A faixa, o que o clique faz e onde ligar a letra, se precisar |
+| Passar o mouse no texto | A faixa, o que cada clique faz e onde ligar a letra, se precisar |
 
 ## Configuração
 
@@ -116,7 +117,7 @@ omarchy bar set gusthx.canto popupLyrics false --json     # sem as linhas da let
 omarchy bar set gusthx.canto maxWidth 320 --json          # texto mais largo (120 a 600, padrão 240)
 ```
 
-Clicar no texto na barra muda o `startMode` para você, e o botão de letra do popup muda o
+Clicar com o botão direito no texto muda o `startMode` para você, e o botão de letra do popup muda o
 `popupLyrics`. `maxWidth` é em pixels antes da escala
 da tela: uma linha da letra mais longa vira páginas, um título mais longo ganha reticências.
 
@@ -130,7 +131,7 @@ Sem conta, sem telemetria, sem log.
 O que ele **lê**: o player MPRIS do Canto no D-Bus da sessão (faixa, artistas, álbum, link da
 capa, se está tocando, posição) e, só com o modo letra ligado, o coração na barra ou o popup
 aberto, `$XDG_RUNTIME_DIR/canto/state.json`. Ele **escreve** só as próprias opções `startMode`
-e `popupLyrics` em `~/.config/omarchy/shell.json`, quando você clica no texto ou no botão de
+e `popupLyrics` em `~/.config/omarchy/shell.json`, quando você clica com o botão direito no texto ou no botão de
 letra do popup, pelo próprio shell (como o relógio do Omarchy salva o formato).
 
 O que ele **roda**: `busctl --user call ... ToggleLiked` quando você clica no coração (o método
