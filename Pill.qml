@@ -11,13 +11,13 @@ import "Model.js" as Model
 // liked.
 //
 // The text area shows "Title · Artist" (title mode, a music note in front)
-// or the current synced lyric line (lyric mode, a microphone in front).
+// or the current synced lyric line (lyric mode, Canto's lyrics icon in front).
 // Clicking it switches modes (toggleRequested). A lyric line wider than
 // maxWidth is never cut: it is split into pages at word boundaries, page 1
 // first, then the next ones on a timer, timed to end before the next line
 // when Canto says when that is. A new line starts again at page 1. With no
 // line to show (Visual Bridge off, an instrumental break, unsynced lyrics)
-// lyric mode shows the track with the microphone dimmed, so the mode is never
+// lyric mode shows the track with the lyrics icon dimmed, so the mode is never
 // a mystery.
 //
 // No continuous animation: pages change on a timer, and the cross-fade
@@ -118,22 +118,27 @@ Item {
       id: cantoButton
       anchors.verticalCenter: parent.verticalCenter
       bar: root.bar
-      // The app icon is full color and reads as a picture, not a glyph: it
-      // gets the room of a pet or app icon (about 70% of the bar), as the other
-      // picture icons on the bar do, and a full icon slot around it.
+      // The app icon is full color and reads as a picture, not a glyph. The
+      // bar fits any iconComponent to a 12 px glyph, so the button holds an
+      // empty square (the icon slot) and the icon is drawn over it below, at
+      // about 70% of the bar, as the other picture icons on the bar are.
       slotSize: Style.bar.iconSlot
       tooltipText: root.running ? root.tr("canto.open", "Open Canto") : root.tr("canto.start", "Start Canto")
       iconComponent: Component {
-        Item {
-          CantoIcon {
-            x: (parent.width - width) / 2
-            y: (parent.height - height) / 2
-            size: Math.round((root.bar ? root.bar.barSize : Style.bar.sizeHorizontal) * 0.7)
-            // Closed: dimmed, like a paused glyph.
-            color: root.running ? root.foreground : root.dimColor
-            dimmed: !root.running
-          }
+        Rectangle {
+          color: "transparent"
+          width: Style.bar.iconCanvas
+          height: Style.bar.iconCanvas
         }
+      }
+
+      CantoIcon {
+        anchors.centerIn: parent
+        size: Math.round((root.bar ? root.bar.barSize : Style.bar.sizeHorizontal) * 0.7)
+        scale: cantoButton.pressScale
+        // Closed: dimmed, like a paused glyph.
+        color: root.running ? root.foreground : root.dimColor
+        dimmed: !root.running
       }
       onPressed: function(b) {
         if (!root.source) return
@@ -214,8 +219,8 @@ Item {
         x: textArea.leftPad
         anchors.verticalCenter: parent.verticalCenter
         textFormat: Text.PlainText
-        text: root.lyricMode ? "󰍬" : "󰝚"
-        // Lyric mode without a line to show: the microphone dims.
+        text: root.lyricMode ? "󱀢" : "󰝚"
+        // Lyric mode without a line to show: the lyrics icon dims.
         color: (root.lyricMode && !root.showingLyric) || !root.playing ? root.dimColor : root.foreground
         font.family: root.fontFamily
         font.pixelSize: Style.font.body

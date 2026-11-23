@@ -9,7 +9,7 @@ popup laid out like Canto's mini player, with the lyric around the current line 
 button.
 
 <p align="center"><img src="docs/bar.png" width="600" alt="The bar: the Canto icon, previous, pause and next buttons, a music note, Paper Lanterns · Lumen Coast"></p>
-<p align="center"><img src="docs/bar-lyric.png" width="600" alt="Lyric mode: a microphone and the current synced line in italic"></p>
+<p align="center"><img src="docs/bar-lyric.png" width="600" alt="Lyric mode: the lyrics icon and the current synced line in italic"></p>
 
 ## What you get
 
@@ -19,13 +19,13 @@ button.
   and *Title · Artist* (cut with an ellipsis past the width you choose). Dimmed while
   paused. The buttons can be turned off, and a like button (a heart) can be turned on.
 - **Click the text for the lyric**: the text switches to the synced line being sung, in
-  italic and with a microphone in front, so it never reads as a title. Click again for the
+  italic and with Canto's lyrics icon in front, so it never reads as a title. Click again for the
   title. The choice is saved and survives a restart.
 - **Never cut**: a line wider than the pill is shown in pages that break between words,
   page 1, then page 2, timed to finish before the next line starts. A new line always
   starts at page 1. No scrolling text, no animation running all the time.
 - **Never confusing**: with no line to show (Visual Bridge off, an instrumental break, a song
-  without synced lyrics) lyric mode shows the title with the microphone dimmed. Hover the
+  without synced lyrics) lyric mode shows the title with the lyrics icon dimmed. Hover the
   text for the track, what a click does, and, if needed, where to turn lyrics on.
 - **A popup like Canto's mini player**: the cover, title and artist, previous / play / next
   with the play button as an accent circle, a lyrics toggle and the heart on the right, and

@@ -230,7 +230,7 @@ Item {
 
             Button {
               anchors.verticalCenter: parent.verticalCenter
-              iconText: "󰍬"
+              iconText: "󱀢"
               tooltipText: root.showLyrics ? root.tr("canto.hideLyrics", "Hide the lyrics") : root.tr("canto.showLyrics", "Show the lyrics")
               // On: the accent, as Canto's checked toggle.
               foreground: root.showLyrics ? root.accent : root.foreground

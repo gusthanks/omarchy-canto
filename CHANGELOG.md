@@ -22,6 +22,11 @@
   the three lyric lines below when the toggle is on (remembered as `popupLyrics`), the
   progress line at the bottom.
 - Default placement: the bar's left section (after the workspaces).
+- The pill's Canto icon is drawn at about 70% of the bar height (18 px on the default bar),
+  over an empty icon slot, as the bar's other picture icons are: as a button icon the bar
+  fitted it to a 12 px glyph.
+- The lyrics toggle and lyric mode use Canto's own lyrics icon (a speech bubble with quotes,
+  Material Design `comment-quote-outline`) instead of a microphone.
 
 ### Fixed
 
