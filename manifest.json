@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "gusthx.canto",
   "name": "Canto Now Playing",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "author": "Gustavo Costa (gusthx)",
   "license": "MIT",
   "description": "Canto in the bar: its icon, previous / play-pause / next and the title, or the current synced lyric line shown whole in pages. The popup is laid out like Canto's mini player, with the lyric around the current line and a like button.",

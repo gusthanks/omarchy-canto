@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.1 (2026-11-23)
+
+### Changed
+
+- A click on the popup's cover opens the album in Canto: the window comes up and Canto gets
+  the track's `spotify:track:` link through MPRIS `OpenUri` (Quickshell's `openUri`), which it
+  opens as the track's album. The title still just brings the window up.
+
 ## 0.3.0 (2026-11-23)
 
 ### Added
@@ -31,9 +39,6 @@
 - The pill shows the pointing hand over all of it (the bar's pointer layer showed it only over
   a pressable widget), and the bar no longer draws its accent underline below the whole pill
   while the popup is open.
-- A click on the popup's cover opens the album in Canto: the window comes up and Canto gets
-  the track's `spotify:track:` link through MPRIS `OpenUri` (Quickshell's `openUri`), which it opens as the track's
-  album. The title still just brings the window up.
 - The lyrics toggle and lyric mode use Canto's own lyrics icon (a speech bubble with quotes,
   Material Design `comment-quote-outline`) instead of a microphone.
 
