@@ -29,7 +29,13 @@ Item {
   readonly property bool canRaise: !!player && player.canRaise
 
   readonly property bool bridgeAvailable: bridge.available
-  readonly property string lyric: Model.bridgeLyric(bridge.frame, title, playing, bridge.now)
+  readonly property string lyric: bridge.lyricLine
+  readonly property string previousLyric: bridge.previousLine
+  readonly property string nextLyric: bridge.nextLine
+  // ms until the next line, as of the frame that brought the current one.
+  readonly property real lyricEndsInMs: bridge.lineEndsInMs
+  // How long the previous line lasted: the page timing fallback.
+  readonly property real lineMs: bridge.lineMs
 
   function playPause() {
     if (!player) return
@@ -44,5 +50,8 @@ Item {
   Bridge {
     id: bridge
     watching: root.player !== null && root.wantLyric
+    trackTitle: root.title
+    trackArtist: root.artist
+    trackPlaying: root.playing
   }
 }

@@ -34,6 +34,9 @@ Item {
 
   // Off: as if Visual Bridge were off in Canto (no file to read).
   property bool bridgeOn: true
+  // Which mock frame: dev/mock/state.json (a long line, two pages) or
+  // state-short.json (a line that fits).
+  property string frameFile: "state.json"
 
   property string title: "Paper Lanterns"
   property string artist: Model.artistLine(["Lumen Coast", "Ana Vale"])
@@ -48,8 +51,11 @@ Item {
   readonly property bool canRaise: true
 
   readonly property bool bridgeAvailable: bridge.available
-  // now = 0: the mock frame is old on purpose, skip the staleness check.
-  readonly property string lyric: Model.bridgeLyric(bridge.frame, title, playing, 0)
+  readonly property string lyric: bridge.lyricLine
+  readonly property string previousLyric: bridge.previousLine
+  readonly property string nextLyric: bridge.nextLine
+  readonly property real lyricEndsInMs: bridge.lineEndsInMs
+  readonly property real lineMs: bridge.lineMs
 
   function playPause() { playing = !playing }
   function next() {}
@@ -58,7 +64,12 @@ Item {
 
   W.Bridge {
     id: bridge
-    path: String(Qt.resolvedUrl("canto/dev/mock/state.json")).replace(/^file:\/\//, "")
+    path: String(Qt.resolvedUrl("canto/dev/mock/" + root.frameFile)).replace(/^file:\/\//, "")
     watching: root.bridgeOn
+    trackTitle: root.title
+    trackArtist: root.artist
+    trackPlaying: root.playing
+    // The mock frame is old on purpose.
+    checkStale: false
   }
 }

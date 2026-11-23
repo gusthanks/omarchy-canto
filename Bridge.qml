@@ -25,11 +25,41 @@ Item {
   property bool playing: false
   property string title: ""
   property string lyric: ""
+  // Newer Canto only (hasNeighbors false on older builds): the lines around
+  // the current one, and ms until the next line starts.
+  property bool hasNeighbors: false
+  property string previous: ""
+  property string next: ""
+  property real endsInMs: 0
   property real updatedAt: 0
   // Wall clock for the staleness check, ticking slowly only while watching.
   property real now: 0
 
   readonly property var frame: ({ active: root.active, playing: root.playing, title: root.title, lyric: root.lyric, updatedAt: root.updatedAt })
+
+  // ---- What the views use, for the track MPRIS reports (set by the owner).
+  property string trackTitle: ""
+  property string trackArtist: ""
+  property bool trackPlaying: false
+  // The harness turns this off: its mock frame is old on purpose.
+  property bool checkStale: true
+
+  readonly property bool frameValid: Model.bridgeFrameValid(frame, trackTitle, trackPlaying, checkStale ? now : 0)
+  readonly property string lyricLine: frameValid ? lyric : ""
+  // Canto's own neighbors when it sends them; otherwise the line remembered
+  // before this one (older Canto has no next line).
+  readonly property string previousLine: frameValid && hasNeighbors ? previous : (history ? history.previous : "")
+  readonly property string nextLine: frameValid ? next : ""
+  readonly property real lineEndsInMs: frameValid ? endsInMs : 0
+  readonly property real lineMs: history ? history.lineMs : 0
+
+  property var history: null
+  function remember() {
+    root.history = Model.lyricHistory(root.history, root.lyricLine, root.trackTitle + "\n" + root.trackArtist, Date.now())
+  }
+  onLyricLineChanged: remember()
+  onTrackTitleChanged: remember()
+
 
   function apply(text) {
     var f = Model.parseBridge(text)
@@ -38,8 +68,13 @@ Item {
     root.active = f.active
     root.playing = f.playing
     root.title = f.title
-    root.lyric = f.lyric
+    // Timing and neighbors first: whoever reacts to a new lyric reads them.
+    root.hasNeighbors = f.hasNeighbors
+    root.previous = f.previous
+    root.next = f.next
+    root.endsInMs = f.endsInMs
     root.updatedAt = f.updatedAt
+    root.lyric = f.lyric
     root.now = Date.now()
   }
 
@@ -47,6 +82,10 @@ Item {
     root.loaded = false
     root.active = false
     root.lyric = ""
+    root.hasNeighbors = false
+    root.previous = ""
+    root.next = ""
+    root.endsInMs = 0
   }
 
   onWatchingChanged: if (!watching) clear()
