@@ -12,7 +12,8 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..')
 const mod = { exports: {} }
 new Function('module', readFileSync(join(root, 'Model.js'), 'utf8'))(mod)
 const {
-  cantoRank, pickCantoPlayer, artistLine, trackLabel, pillText, labelWidth,
+  cantoRank, pickCantoPlayer, artistLine, trackLabel, labelWidth,
+  normalizedMode, otherMode, showsLyric, paginate, pageInterval, lyricHistory,
   parseBridge, bridgeLyric, wheelStep, STALE_MS
 } = mod.exports
 
@@ -53,18 +54,110 @@ describe('labels', () => {
     assert.equal(trackLabel('', 'Lumen Coast'), 'Lumen Coast')
     assert.equal(trackLabel('', ''), '')
   })
-  it('shows the lyric only when it is on and there is one', () => {
-    assert.equal(pillText(true, 'a line', 'T', 'A'), 'a line')
-    assert.equal(pillText(false, 'a line', 'T', 'A'), 'T · A')
-    assert.equal(pillText(true, '   ', 'T', 'A'), 'T · A')
-    assert.equal(pillText(true, null, 'T', 'A'), 'T · A')
-  })
   it('clamps the width setting', () => {
     assert.equal(labelWidth(undefined), 240)
     assert.equal(labelWidth('300'), 300)
     assert.equal(labelWidth(20), 120)
     assert.equal(labelWidth(5000), 600)
     assert.equal(labelWidth('abc', 200), 200)
+  })
+})
+
+describe('modes', () => {
+  it('normalizes the mode setting and toggles', () => {
+    assert.equal(normalizedMode('lyric'), 'lyric')
+    assert.equal(normalizedMode('LYRIC'), 'lyric')
+    assert.equal(normalizedMode('nonsense'), 'title')
+    assert.equal(normalizedMode(undefined, 'lyric'), 'lyric')
+    assert.equal(otherMode('title'), 'lyric')
+    assert.equal(otherMode('lyric'), 'title')
+  })
+  it('lyric mode shows the line only when there is one', () => {
+    assert.equal(showsLyric('lyric', 'a line'), true)
+    assert.equal(showsLyric('lyric', '  '), false)
+    assert.equal(showsLyric('lyric', null), false)
+    assert.equal(showsLyric('title', 'a line'), false)
+  })
+})
+
+describe('paginate', () => {
+  const measure = t => t.length * 10 // a monospace stub: 10 px per character
+
+  it('a line that fits is one page', () => {
+    assert.deepEqual(paginate('the tide came in anyway', 330, measure), ['the tide came in anyway'])
+  })
+  it('splits a long line at word boundaries, every page fits', () => {
+    const line = 'we kept the porch light burning and the tide came in anyway'
+    const pages = paginate(line, 330, measure)
+    assert.deepEqual(pages, ['we kept the porch light burning', 'and the tide came in anyway'])
+    for (const p of pages) assert.ok(measure(p) <= 330, p)
+    assert.equal(pages.join(' '), line)
+  })
+  it('keeps every word and can make more than two pages', () => {
+    const line = 'one two three four five six seven eight nine ten eleven twelve'
+    const pages = paginate(line, 120, measure)
+    assert.ok(pages.length > 2)
+    for (const p of pages) assert.ok(measure(p) <= 120, p)
+    assert.equal(pages.join(' '), line)
+  })
+  it('cuts a word wider than a page by characters, never elides', () => {
+    const pages = paginate('supercalifragilistic ok', 100, measure)
+    for (const p of pages) assert.ok(measure(p) <= 100, p)
+    assert.equal(pages.join('').replace(/ /g, ''), 'supercalifragilisticok')
+  })
+  it('collapses spaces and gives nothing for an empty line', () => {
+    assert.deepEqual(paginate('  a   b  ', 330, measure), ['a b'])
+    assert.deepEqual(paginate('', 330, measure), [])
+    assert.deepEqual(paginate(null, 330, measure), [])
+  })
+})
+
+describe('pageInterval', () => {
+  it('one page needs no timer', () => {
+    assert.equal(pageInterval(1, 4000), 0)
+    assert.equal(pageInterval(0, 0), 0)
+  })
+  it("with Canto's timing, the pages share 90% of the time left", () => {
+    assert.equal(pageInterval(2, 0, 4200), 1890)
+    assert.equal(pageInterval(2, 2000, 8000), 3600)
+    assert.equal(pageInterval(3, 0, 2000), 1200)
+  })
+  it('defaults to 1.6 s per page without an estimate', () => {
+    assert.equal(pageInterval(2, 0), 1600)
+  })
+  it('shares the estimated line time, between 1.2 s and 3 s a page', () => {
+    assert.equal(pageInterval(2, 4000), 1800)
+    assert.equal(pageInterval(3, 2000), 1200)
+    assert.equal(pageInterval(2, 20000), 3000)
+  })
+})
+
+describe('lyricHistory', () => {
+  it('remembers the previous line and how long it lasted', () => {
+    let h = lyricHistory(null, 'line one', 'T', 1000)
+    assert.equal(h.previous, '')
+    h = lyricHistory(h, 'line two', 'T', 3500)
+    assert.equal(h.previous, 'line one')
+    assert.equal(h.lineMs, 2500)
+  })
+  it('the same line is no change', () => {
+    const h = lyricHistory(null, 'line one', 'T', 1000)
+    assert.equal(lyricHistory(h, 'line one', 'T', 2000), h)
+  })
+  it('across a break keeps the last sung line as previous', () => {
+    let h = lyricHistory(null, 'line one', 'T', 1000)
+    h = lyricHistory(h, '', 'T', 3000)
+    h = lyricHistory(h, 'line two', 'T', 9000)
+    assert.equal(h.previous, 'line one')
+  })
+  it('ignores durations from seeks or pauses, starts over on a new track', () => {
+    let h = lyricHistory(null, 'a', 'T', 1000)
+    h = lyricHistory(h, 'b', 'T', 3000)
+    h = lyricHistory(h, 'c', 'T', 60000)
+    assert.equal(h.lineMs, 2000)
+    h = lyricHistory(h, 'x', 'U', 61000)
+    assert.equal(h.previous, '')
+    assert.equal(h.lineMs, 0)
   })
 })
 
@@ -78,6 +171,19 @@ describe('Visual Bridge', () => {
     assert.ok(f.lyric.length > 0)
     assert.ok(f.updatedAt > 0)
   })
+  it('reads the lines around the current one when Canto sends them', () => {
+    const f = parseBridge(mockText)
+    assert.equal(f.hasNeighbors, true)
+    assert.ok(f.previous.length > 0)
+    assert.ok(f.next.length > 0)
+    assert.ok(f.endsInMs > 0)
+    const nulls = parseBridge('{"app":"canto","active":true,"lyric":"x","lyric_previous":null,"lyric_next":null,"lyric_ends_in_ms":null}')
+    assert.deepEqual([nulls.hasNeighbors, nulls.previous, nulls.next, nulls.endsInMs], [true, '', '', 0])
+  })
+  it('an older Canto without those keys says so', () => {
+    const f = parseBridge('{"app":"canto","active":true,"lyric":"x"}')
+    assert.deepEqual([f.hasNeighbors, f.previous, f.next, f.endsInMs], [false, '', '', 0])
+  })
   it('rejects broken, empty or foreign files so the last frame is kept', () => {
     assert.equal(parseBridge(''), null)
     assert.equal(parseBridge('{"app":"canto","act'), null)
@@ -86,7 +192,11 @@ describe('Visual Bridge', () => {
   })
   it('handles a stopped or inactive frame', () => {
     const f = parseBridge('{"app":"canto","version":1,"active":false,"playing":false,"track":null,"lyric":null}')
-    assert.deepEqual(f, { active: false, playing: false, title: '', artists: '', lyric: '', updatedAt: 0 })
+    assert.equal(f.active, false)
+    assert.equal(f.title, '')
+    assert.equal(f.lyric, '')
+    assert.equal(f.hasNeighbors, false)
+    assert.equal(f.endsInMs, 0)
     assert.equal(bridgeLyric(f, 'T', true, 0), '')
   })
 

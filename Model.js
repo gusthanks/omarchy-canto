@@ -54,12 +54,68 @@ function trackLabel(title, artist) {
   return t || a
 }
 
-// What the pill says: the synced lyric line when that is on and there is one,
-// otherwise the track.
-function pillText(showLyric, lyric, title, artist) {
-  var line = String(lyric || "").trim()
-  if (showLyric && line) return line
-  return trackLabel(title, artist)
+// The two things the pill's text can show. Clicking the text switches.
+function normalizedMode(value, fallback) {
+  var v = String(value === undefined || value === null ? "" : value).toLowerCase()
+  if (v === "title" || v === "lyric") return v
+  return fallback === "lyric" ? "lyric" : "title"
+}
+
+function otherMode(mode) {
+  return normalizedMode(mode) === "lyric" ? "title" : "lyric"
+}
+
+// Lyric mode shows the line when there is one; otherwise (bridge off, an
+// instrumental break, unsynced lyrics) it falls back to the track, and the
+// pill dims its lyric glyph so the mode stays clear.
+function showsLyric(mode, lyric) {
+  return normalizedMode(mode) === "lyric" && String(lyric || "").trim() !== ""
+}
+
+// Splits a lyric line into pages that each fit maxWidth, breaking only
+// between words. `measure(text)` returns the drawn width (TextMetrics in QML,
+// a stub in the tests). A word wider than a page is cut by characters, so
+// nothing is ever elided. A line that fits is one page.
+function paginate(text, maxWidth, measure) {
+  var line = String(text || "").replace(/\s+/g, " ").trim()
+  if (!line) return []
+  if (!(maxWidth > 0) || measure(line) <= maxWidth) return [line]
+  var words = line.split(" ")
+  var pages = []
+  var current = ""
+  for (var i = 0; i < words.length; i++) {
+    var word = words[i]
+    var candidate = current ? current + " " + word : word
+    if (measure(candidate) <= maxWidth) { current = candidate; continue }
+    if (current) pages.push(current)
+    current = ""
+    // A word too wide for a page on its own: cut it into page-wide pieces.
+    while (measure(word) > maxWidth && word.length > 1) {
+      var n = word.length - 1
+      while (n > 1 && measure(word.slice(0, n)) > maxWidth) n--
+      pages.push(word.slice(0, n))
+      word = word.slice(n)
+    }
+    current = word
+  }
+  if (current) pages.push(current)
+  return pages
+}
+
+// How long each page of a line stays, in ms. With `endsInMs` (newer Canto:
+// time until the next line, read when the line started) the pages share 90%
+// of it, at least 1.2 s each. Older Canto sends no timing, so `lineMs` (how
+// long the previous line lasted) stands in, between 1.2 s and 3 s a page;
+// with neither, 1.6 s a page.
+var PAGE_DEFAULT_MS = 1600
+var PAGE_MIN_MS = 1200
+var PAGE_MAX_ESTIMATED_MS = 3000
+
+function pageInterval(pageCount, lineMs, endsInMs) {
+  if (!(pageCount > 1)) return 0
+  if (endsInMs > 0) return Math.round(Math.max(PAGE_MIN_MS, endsInMs * 0.9 / pageCount))
+  if (!(lineMs > 0)) return PAGE_DEFAULT_MS
+  return Math.round(Math.max(PAGE_MIN_MS, Math.min(PAGE_MAX_ESTIMATED_MS, lineMs * 0.9 / pageCount)))
 }
 
 // The maxWidth setting, in unscaled pixels, kept in a sane range.
@@ -83,6 +139,13 @@ function parseBridge(text) {
     title: track ? String(track.title || "") : "",
     artists: track ? artistLine(track.artists) : "",
     lyric: typeof data.lyric === "string" ? data.lyric.trim() : "",
+    // Newer Canto builds also send the lines around the current one and when
+    // the next starts. Older ones leave the keys out (hasNeighbors false), so
+    // the widget falls back to its own memory and estimate.
+    hasNeighbors: "lyric_previous" in data || "lyric_next" in data,
+    previous: typeof data.lyric_previous === "string" ? data.lyric_previous.trim() : "",
+    next: typeof data.lyric_next === "string" ? data.lyric_next.trim() : "",
+    endsInMs: Math.max(0, Number(data.lyric_ends_in_ms) || 0),
     updatedAt: Number(data.updated_at_ms) || 0
   }
 }
@@ -96,15 +159,39 @@ function normalizedTitle(s) {
 // bridge turned off without the final frame).
 var STALE_MS = 5000
 
-// The lyric line to show for the MPRIS track, or "". The frame must be active,
-// carry a line, and describe the same track MPRIS reports (a leftover file from
-// an earlier session never leaks a wrong line). With `now` set, a frame that
-// stopped updating while MPRIS says it is playing counts as stale.
+// Whether a frame describes the MPRIS track right now: active, about the
+// same track (a leftover file from an earlier session never leaks a wrong
+// line), and, with `now` set, still updating while MPRIS says it is playing.
+function bridgeFrameValid(frame, mprisTitle, mprisPlaying, now) {
+  if (!frame || !frame.active) return false
+  if (now && mprisPlaying && frame.updatedAt && now - frame.updatedAt > STALE_MS) return false
+  if (mprisTitle && frame.title && normalizedTitle(mprisTitle) !== normalizedTitle(frame.title)) return false
+  return true
+}
+
+// The lyric line to show for the MPRIS track, or "".
 function bridgeLyric(frame, mprisTitle, mprisPlaying, now) {
-  if (!frame || !frame.active || !frame.lyric) return ""
-  if (now && mprisPlaying && frame.updatedAt && now - frame.updatedAt > STALE_MS) return ""
-  if (mprisTitle && frame.title && normalizedTitle(mprisTitle) !== normalizedTitle(frame.title)) return ""
-  return frame.lyric
+  if (!frame || !frame.lyric) return ""
+  return bridgeFrameValid(frame, mprisTitle, mprisPlaying, now) ? frame.lyric : ""
+}
+
+// A tiny memory of the lyric, fed each time the line changes: the line before
+// the current one (the popup shows it above) and how long the last line
+// lasted (the page timing estimate). It starts over on a new track. A
+// duration outside 0.3 to 15 s (a seek, a pause) is not trusted.
+function lyricHistory(state, lyric, trackKey, now) {
+  var s = state || {}
+  var line = String(lyric || "").trim()
+  if (s.track !== trackKey)
+    return { track: trackKey, line: line, previous: "", changedAt: line ? now : 0, lineMs: 0 }
+  if (line === s.line) return s
+  if (!line) return { track: s.track, line: "", previous: s.line || s.previous || "", changedAt: s.changedAt || 0, lineMs: s.lineMs || 0 }
+  var lineMs = s.lineMs || 0
+  if (s.line && s.changedAt) {
+    var lasted = now - s.changedAt
+    if (lasted >= 300 && lasted <= 15000) lineMs = lasted
+  }
+  return { track: s.track, line: line, previous: s.line || s.previous || "", changedAt: now, lineMs: lineMs }
 }
 
 // Mouse wheel to next/previous. Touchpads send many small deltas, so they add
@@ -129,11 +216,17 @@ if (typeof module !== "undefined" && module.exports) {
     pickCantoPlayer: pickCantoPlayer,
     artistLine: artistLine,
     trackLabel: trackLabel,
-    pillText: pillText,
+    normalizedMode: normalizedMode,
+    otherMode: otherMode,
+    showsLyric: showsLyric,
+    paginate: paginate,
+    pageInterval: pageInterval,
     labelWidth: labelWidth,
     parseBridge: parseBridge,
     normalizedTitle: normalizedTitle,
+    bridgeFrameValid: bridgeFrameValid,
     bridgeLyric: bridgeLyric,
+    lyricHistory: lyricHistory,
     wheelStep: wheelStep,
     STALE_MS: STALE_MS
   }
