@@ -3,8 +3,11 @@ import qs.Commons
 import qs.Commons as Commons
 import qs.Ui
 
-// The popup's content: cover, title, artists, album, the lyric (previous,
-// current and next line, whole, wrapped) and previous / play-pause / next. Reads everything from `source`
+// The popup's content, laid out like Canto's own mini player: the cover on
+// the left; the title and artist; previous / play (an accent circle) / next,
+// then the lyrics toggle and the heart on the right; a thin progress line.
+// Below, with the lyrics toggle on, the line before, the current line and
+// the next one, whole and wrapped. Reads everything from `source`
 // (CantoSource.qml, or dev/MockCanto.qml in the harness). Clicking the cover
 // or the title brings Canto's window up.
 Item {
@@ -14,27 +17,33 @@ Item {
   property var tr: function(key, fallback) { return fallback !== undefined ? fallback : key }
   property color foreground: Commons.Color.foreground
   property color accent: Commons.Color.accent
+  property color background: Commons.Color.popups.background
   property string fontFamily: Style.font.family
   property bool animate: true
   // Off: no cover is loaded (the host turns it on while the popup is open).
   property bool loadArt: true
+  // The lyrics toggle (saved by the host as popupLyrics).
+  property bool showLyrics: true
+  signal lyricsToggled()
 
   readonly property bool hasTrack: !!source && source.hasTrack
+  readonly property bool playing: !!source && source.playing
   readonly property string lyric: source ? source.lyric : ""
   readonly property string previousLyric: source ? source.previousLyric : ""
   readonly property string nextLyric: source ? source.nextLyric : ""
   // Shown during an instrumental break too, when Canto knows the next line.
-  readonly property bool showLyrics: lyric !== "" || nextLyric !== ""
-  readonly property bool showHint: !!source && hasTrack && !source.bridgeAvailable
-  readonly property real coverSize: Style.space(76)
+  readonly property bool hasLyrics: lyric !== "" || nextLyric !== ""
+  readonly property bool showHint: showLyrics && hasTrack && !!source && !source.bridgeAvailable
+  readonly property color dim: Qt.darker(foreground, 1.7)
+  readonly property real coverSize: Style.space(64)
 
-  implicitWidth: Style.space(340)
+  implicitWidth: Style.space(360)
   implicitHeight: column.implicitHeight
 
   Column {
     id: column
     width: parent.width
-    spacing: Style.space(14)
+    spacing: 0
 
     Row {
       id: header
@@ -43,8 +52,10 @@ Item {
 
       BorderSurface {
         id: cover
+        anchors.verticalCenter: parent.verticalCenter
         width: root.coverSize
         height: root.coverSize
+        // Omarchy's control radius: the square art sits inside it cleanly.
         radius: Style.spacing.labelGap
         color: Style.normalFillFor(root.foreground, root.accent)
         borderSpec: Border.controlSpec("normal", root.foreground, root.accent)
@@ -97,9 +108,9 @@ Item {
 
       Column {
         id: info
-        width: parent.width - root.coverSize - header.spacing
         anchors.verticalCenter: parent.verticalCenter
-        spacing: Style.space(3)
+        width: parent.width - root.coverSize - header.spacing
+        spacing: Style.space(2)
 
         Text {
           width: parent.width
@@ -110,8 +121,12 @@ Item {
           font.pixelSize: Style.font.subtitle
           font.bold: true
           elide: Text.ElideRight
-          maximumLineCount: 2
-          wrapMode: Text.Wrap
+          MouseArea {
+            anchors.fill: parent
+            enabled: !!root.source && root.source.canRaise
+            cursorShape: enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
+            onClicked: root.source.raise()
+          }
         }
 
         Text {
@@ -119,31 +134,135 @@ Item {
           textFormat: Text.PlainText
           text: root.hasTrack ? root.source.artist : ""
           visible: text !== ""
-          color: Qt.darker(root.foreground, 1.3)
+          color: Qt.darker(root.foreground, 1.4)
           font.family: root.fontFamily
           font.pixelSize: Style.font.bodySmall
           elide: Text.ElideRight
         }
 
-        Text {
+        // previous / play / next on the left, lyrics and heart on the right.
+        Item {
           width: parent.width
-          textFormat: Text.PlainText
-          text: root.hasTrack ? root.source.album : ""
-          visible: text !== ""
-          color: Qt.darker(root.foreground, 1.6)
-          font.family: root.fontFamily
-          font.pixelSize: Style.font.caption
-          elide: Text.ElideRight
+          height: playCircle.height + Style.space(4)
+          // Transport controls keep previous, play, next in every language.
+          LayoutMirroring.enabled: false
+          LayoutMirroring.childrenInherit: true
+
+          Row {
+            anchors.left: parent.left
+            anchors.leftMargin: -Style.space(6)
+            anchors.verticalCenter: parent.verticalCenter
+            spacing: Style.space(2)
+
+            Button {
+              anchors.verticalCenter: parent.verticalCenter
+              iconText: "󰒮"
+              tooltipText: root.tr("canto.previous", "Previous")
+              foreground: root.foreground
+              horizontalPadding: Style.space(7)
+              verticalPadding: Style.space(5)
+              enabled: !!root.source && root.source.canPrevious
+              opacity: enabled ? 1.0 : 0.4
+              onClicked: root.source.previous()
+            }
+
+            // Play / pause: an accent-filled circle, as in Canto.
+            Item {
+              id: playCircle
+              anchors.verticalCenter: parent.verticalCenter
+              width: Style.space(30)
+              height: width
+              opacity: root.source && root.source.canPlayPause ? 1.0 : 0.4
+              readonly property color fill: playMouse.containsMouse ? Qt.lighter(root.accent, 1.12) : root.accent
+              onFillChanged: disc.requestPaint()
+              // Painted once (and on hover): a smooth disc in every renderer.
+              Canvas {
+                id: disc
+                anchors.fill: parent
+                onPaint: {
+                  var ctx = getContext("2d")
+                  ctx.reset()
+                  ctx.fillStyle = playCircle.fill
+                  ctx.beginPath()
+                  ctx.arc(width / 2, height / 2, Math.min(width, height) / 2, 0, Math.PI * 2)
+                  ctx.fill()
+                }
+              }
+              Text {
+                anchors.centerIn: parent
+                // The play triangle sits optically a hair right of center.
+                anchors.horizontalCenterOffset: root.playing ? 0 : Style.space(1)
+                text: root.playing ? "󰏤" : "󰐊"
+                color: root.background
+                font.family: root.fontFamily
+                font.pixelSize: Style.font.iconLarge
+              }
+              MouseArea {
+                id: playMouse
+                anchors.fill: parent
+                hoverEnabled: true
+                enabled: !!root.source && root.source.canPlayPause
+                cursorShape: Qt.PointingHandCursor
+                Accessible.role: Accessible.Button
+                Accessible.name: root.playing ? root.tr("canto.pause", "Pause") : root.tr("canto.play", "Play")
+                onClicked: root.source.playPause()
+              }
+            }
+
+            Button {
+              anchors.verticalCenter: parent.verticalCenter
+              iconText: "󰒭"
+              tooltipText: root.tr("canto.next", "Next")
+              foreground: root.foreground
+              horizontalPadding: Style.space(7)
+              verticalPadding: Style.space(5)
+              enabled: !!root.source && root.source.canNext
+              opacity: enabled ? 1.0 : 0.4
+              onClicked: root.source.next()
+            }
+          }
+
+          Row {
+            anchors.right: parent.right
+            anchors.rightMargin: -Style.space(6)
+            anchors.verticalCenter: parent.verticalCenter
+            spacing: Style.space(2)
+
+            Button {
+              anchors.verticalCenter: parent.verticalCenter
+              iconText: "󰍬"
+              tooltipText: root.showLyrics ? root.tr("canto.hideLyrics", "Hide the lyrics") : root.tr("canto.showLyrics", "Show the lyrics")
+              // On: the accent, as Canto's checked toggle.
+              foreground: root.showLyrics ? root.accent : root.foreground
+              horizontalPadding: Style.space(7)
+              verticalPadding: Style.space(5)
+              onClicked: root.lyricsToggled()
+            }
+
+            Button {
+              anchors.verticalCenter: parent.verticalCenter
+              // Hidden while Canto cannot say (older Canto, not a Spotify track).
+              visible: !!root.source && root.source.likedKnown
+              iconText: root.source && root.source.liked ? "󰋑" : "󰋕"
+              tooltipText: root.source && root.source.liked ? root.tr("canto.unlike", "Remove from Liked Songs") : root.tr("canto.like", "Save to Liked Songs")
+              foreground: root.source && root.source.liked ? root.accent : root.foreground
+              horizontalPadding: Style.space(7)
+              verticalPadding: Style.space(5)
+              onClicked: root.source.toggleLiked()
+            }
+          }
         }
       }
     }
 
     // The lyric: the line before, the current one (larger, set off by a thin
     // accent rule) and the next one. Whole lines, wrapped, never cut.
+    Item { width: 1; height: Style.space(14); visible: lyricBlock.visible || hint.visible }
+
     Column {
       id: lyricBlock
       width: parent.width
-      visible: root.showLyrics
+      visible: root.showLyrics && root.hasLyrics
       spacing: Style.space(6)
       readonly property real indent: Style.space(12)
 
@@ -153,7 +272,7 @@ Item {
         visible: text !== ""
         textFormat: Text.PlainText
         text: root.previousLyric
-        color: Qt.darker(root.foreground, 1.7)
+        color: root.dim
         font.family: root.fontFamily
         font.pixelSize: Style.font.bodySmall
         wrapMode: Text.Wrap
@@ -177,7 +296,7 @@ Item {
           textFormat: Text.PlainText
           // A break between verses: a quiet note until the next line.
           text: root.lyric !== "" ? root.lyric : "♪"
-          color: root.lyric !== "" ? root.foreground : Qt.darker(root.foreground, 1.7)
+          color: root.lyric !== "" ? root.foreground : root.dim
           font.family: root.fontFamily
           font.pixelSize: Style.font.subtitle
           font.italic: true
@@ -191,7 +310,7 @@ Item {
         visible: text !== ""
         textFormat: Text.PlainText
         text: root.nextLyric
-        color: Qt.darker(root.foreground, 1.7)
+        color: root.dim
         font.family: root.fontFamily
         font.pixelSize: Style.font.bodySmall
         wrapMode: Text.Wrap
@@ -199,58 +318,35 @@ Item {
     }
 
     Text {
+      id: hint
       width: parent.width
       visible: root.showHint
       textFormat: Text.PlainText
       text: root.tr("canto.bridgeHint", "Lyrics show here when Visual Bridge is on in Canto (Preferences, Integrations).")
-      color: Qt.darker(root.foreground, 1.6)
+      color: root.dim
       font.family: root.fontFamily
       font.pixelSize: Style.font.caption
       wrapMode: Text.Wrap
     }
 
-    Row {
-      anchors.horizontalCenter: parent.horizontalCenter
-      spacing: Style.space(6)
-      // Transport controls keep previous, play, next in every language.
-      LayoutMirroring.enabled: false
-      LayoutMirroring.childrenInherit: true
-
-      Button {
-        anchors.verticalCenter: parent.verticalCenter
-        iconText: "󰒮"
-        tooltipText: root.tr("canto.previous", "Previous")
-        foreground: root.foreground
-        horizontalPadding: Style.spacing.controlPaddingX
-        verticalPadding: Style.spacing.controlPaddingY
-        enabled: !!root.source && root.source.canPrevious
-        opacity: enabled ? 1.0 : 0.4
-        onClicked: root.source.previous()
-      }
-
-      Button {
-        anchors.verticalCenter: parent.verticalCenter
-        iconText: root.source && root.source.playing ? "󰏤" : "󰐊"
-        tooltipText: root.source && root.source.playing ? root.tr("canto.pause", "Pause") : root.tr("canto.play", "Play")
-        foreground: root.foreground
-        horizontalPadding: Style.spacing.panelGap
-        verticalPadding: Style.spacing.controlPaddingY
-        iconSize: Style.font.iconLarge
-        enabled: !!root.source && root.source.canPlayPause
-        opacity: enabled ? 1.0 : 0.4
-        onClicked: root.source.playPause()
-      }
-
-      Button {
-        anchors.verticalCenter: parent.verticalCenter
-        iconText: "󰒭"
-        tooltipText: root.tr("canto.next", "Next")
-        foreground: root.foreground
-        horizontalPadding: Style.spacing.controlPaddingX
-        verticalPadding: Style.spacing.controlPaddingY
-        enabled: !!root.source && root.source.canNext
-        opacity: enabled ? 1.0 : 0.4
-        onClicked: root.source.next()
+    // A thin progress line along the bottom, as on the mini player's edge.
+    Item {
+      width: parent.width
+      height: Style.space(14) + line.height
+      visible: !!root.source && root.source.progress >= 0
+      Rectangle {
+        id: line
+        anchors.bottom: parent.bottom
+        width: parent.width
+        height: Math.max(1, Style.space(2))
+        radius: height / 2
+        color: Qt.rgba(root.foreground.r, root.foreground.g, root.foreground.b, 0.14)
+        Rectangle {
+          width: parent.width * Math.max(0, Math.min(1, root.source ? root.source.progress : 0))
+          height: parent.height
+          radius: parent.radius
+          color: root.accent
+        }
       }
     }
   }
