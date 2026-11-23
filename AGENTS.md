@@ -19,23 +19,25 @@ is disruptive.
 `dev/run.sh` starts a **separate** Quickshell instance (config dir
 `$XDG_RUNTIME_DIR/gusthx-canto-dev`) with Omarchy's `Commons`/`Ui` libraries, this repo
 and `dev/MockCanto.qml`, which feeds `Pill.qml` and `NowPlayingView.qml` a mock track and
-the mock Visual Bridge frame in `dev/mock/state.json`, read through the real `Bridge.qml`
-and `Model.js`. It never touches the running shell, D-Bus/MPRIS, the real
+the mock Visual Bridge frames in `dev/mock/` (`state.json`, a long line; `state-short.json`),
+read through the real `Bridge.qml` and `Model.js`. It never touches the running shell, D-Bus/MPRIS, the real
 `$XDG_RUNTIME_DIR/canto/state.json` or `shell.json`, and Canto does not need to run.
 Captures render offscreen (Qt's offscreen platform), so they also work with the screen
 off; `HEADLESS=0` draws on a background layer surface instead. Everything runs under
 `nice -n 19`.
 
 ```bash
-dev/run.sh check        # compile every type, BarWidget.qml included (deploy runs this too)
-dev/run.sh test         # Model.js + i18n catalog tests (node --test, no npm packages)
-dev/run.sh bar          # docs/bar.png          the pill: Title · Artist
-dev/run.sh bar-lyric    # docs/bar-lyric.png    the pill: the synced lyric line
-dev/run.sh panel        # docs/panel.png        the popup: cover, lyric, controls
-dev/run.sh panel-hint   # docs/panel-hint.png   the popup with Visual Bridge off
-dev/run.sh docs         # all of the captures above
-dev/run.sh preview      # both pills and the popup in a window
-LANGUAGE=pt-BR dev/run.sh panel   # any capture in another language (docs/<name>-pt-BR.png)
+dev/run.sh check            # compile every type, BarWidget.qml included (deploy runs this too)
+dev/run.sh test             # Model.js + i18n catalog tests (node --test, no npm packages)
+dev/run.sh bar              # docs/bar.png              controls + Title · Artist
+dev/run.sh bar-lyric        # docs/bar-lyric.png        lyric mode, a line that fits
+dev/run.sh bar-lyric-page1  # docs/bar-lyric-page1.png  a long line, first page
+dev/run.sh bar-lyric-page2  # docs/bar-lyric-page2.png  the same line, second page
+dev/run.sh panel            # docs/panel.png            the popup: three lyric lines
+dev/run.sh panel-hint       # docs/panel-hint.png       the popup with Visual Bridge off
+dev/run.sh docs             # all of the captures above
+dev/run.sh preview          # the pills and the popup in a window
+LANGUAGE=pt-BR dev/run.sh panel-hint   # any capture in another language (docs/<name>-pt-BR.png)
 ```
 
 QML warnings from the harness are printed by `dev/run.sh`; fix them before going further.
@@ -43,7 +45,9 @@ Look at the images you render. Also run `omarchy plugin validate .` (it refuses 
 so never leave a `node_modules/` in the repo).
 
 Motion follows Hyprland: with `animations:enabled` off, Omarchy's `Style.duration()`
-returns 0 and the lyric cross-fade is an instant swap. That is intended, not a bug.
+returns 0 and the lyric cross-fade is an instant swap. That is intended, not a bug. Lyric
+pages change on a Timer, never by a running animation (the user's laptop is weak and
+animations are off there).
 
 What the harness cannot render (the real popup window, real MPRIS from Canto, the real
 bar) is checked by the user after deploying, not by you on their live shell.
@@ -75,8 +79,11 @@ of a task.
   property or action added to `CantoSource.qml` must be added to `dev/MockCanto.qml` too.
 - Only Canto: `Model.pickCantoPlayer()` never returns another MPRIS player. Keep it that
   way; Omarchy's own media widget covers every player.
-- Keep the bar widget cheap (it must stay light on older laptops): no timers faster than
-  2 s, the bridge file is watched only while something shows the lyric, and the cover is
-  loaded only while the popup is open.
+- Keep the bar widget cheap (it must stay light on older laptops): no continuous
+  animation; the only fast timer is the lyric page timer (1.2 s or slower, running only
+  while a long line has pages left); the bridge file is watched only in lyric mode or with
+  the popup open; the cover is loaded only while the popup is open.
+- Canto's bridge fields `lyric_previous`, `lyric_next` and `lyric_ends_in_ms` are newer
+  than the bridge itself: keep the fallbacks for builds that leave them out.
 - Mock data only in the harness and tests: never the user's tracks, config or accounts.
   The mock track, lyric and cover are made up for this repo.

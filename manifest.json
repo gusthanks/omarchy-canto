@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "id": "gusthx.canto",
   "name": "Canto Now Playing",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": "Gustavo Costa (gusthx)",
   "license": "MIT",
-  "description": "What Canto is playing, in the bar: title and artist, or the current synced lyric line, with play/pause, next/previous and a small popup with the cover.",
+  "description": "What Canto is playing, in the bar: previous / play-pause / next and the title, or the current synced lyric line, shown whole in pages. A small popup shows the cover and the lyric around the current line.",
   "kinds": [
     "bar-widget"
   ],
@@ -14,7 +14,7 @@
   },
   "barWidget": {
     "displayName": "Canto Now Playing",
-    "description": "Now playing in Canto, or the current synced lyric line. Click to play/pause, scroll to skip, right-click for the popup.",
+    "description": "Canto controls and now playing. Click the text to switch between the title and the synced lyric line; right-click for the popup.",
     "category": "Media",
     "defaultSection": "centerEnd",
     "allowMultiple": false,
@@ -25,22 +25,34 @@
       "now-playing"
     ],
     "defaults": {
-      "showLyric": true,
+      "showControls": true,
+      "startMode": "title",
       "maxWidth": 240
     },
     "schema": [
       {
-        "key": "showLyric",
+        "key": "showControls",
         "type": "boolean",
-        "label": "Show the synced lyric line",
-        "description": "Show the current lyric line instead of the title while one is available. Needs Visual Bridge on in Canto (Preferences, Integrations, Visual Bridge).",
+        "label": "Show previous / play-pause / next",
+        "description": "Small transport buttons before the text. Off leaves the text alone; clicking it still switches modes, and scrolling still skips.",
         "defaultValue": true
+      },
+      {
+        "key": "startMode",
+        "type": "enum",
+        "label": "Text shows",
+        "options": [
+          "title",
+          "lyric"
+        ],
+        "defaultValue": "title",
+        "description": "title: Title · Artist. lyric: the current synced line (needs Visual Bridge on in Canto: Preferences, Integrations, Visual Bridge). Clicking the text in the bar switches it and saves the choice here."
       },
       {
         "key": "maxWidth",
         "type": "integer",
-        "label": "Maximum width",
-        "description": "The widest the text in the bar gets, in pixels before scaling. Longer text is cut with an ellipsis.",
+        "label": "Maximum text width",
+        "description": "The widest the text gets, in pixels before scaling. A longer lyric line is shown in pages that fit; a longer title is cut with an ellipsis.",
         "min": 120,
         "max": 600,
         "step": 20,
