@@ -128,6 +128,7 @@ Item {
             size: cantoButton.iconSize
             // Closed: dimmed, like a paused glyph.
             color: root.running ? root.foreground : root.dimColor
+            dimmed: !root.running
           }
         }
       }

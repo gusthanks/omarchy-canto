@@ -157,7 +157,7 @@ omarchy plugin validate .
 
 Layout: `BarWidget.qml` (the bar slot: settings, mode toggle, wheel, popup window),
 `CantoSource.qml` (Canto's MPRIS player, liked, progress and the actions), `CantoIcon.qml`
-(Canto's icon from `assets/`, in the theme color), `Bridge.qml` (reads the Visual
+(Canto's colorful app icon from `assets/`), `Bridge.qml` (reads the Visual
 Bridge file: the lyric, the lines around it, timing), `Pill.qml` (buttons, text, paging), `NowPlayingView.qml` (the popup's content), `FadeText.qml` (the
 cross-fading text), `Model.js` (pure helpers), `i18n/*.json` (strings, read through
 `Commons.Translations`), `dev/` (harness, mocks, tests, deploy).

@@ -91,7 +91,8 @@ of a task.
 - Canto's bridge fields `lyric_previous`, `lyric_next`, `lyric_ends_in_ms` and `liked` are
   newer than the bridge itself: keep the fallbacks for builds that leave them out (no heart
   without `liked`).
-- `assets/canto-symbolic.svg` is Canto's own icon (MIT, same author): update it from Canto's
-  `data/hicolor/symbolic/apps/` rather than redrawing it.
+- `assets/canto.png` is Canto's own colorful app icon (MIT, same author), the user's choice
+  for the bar: update it from Canto's `data/icons/canto.png` (resized to 128 px) rather than
+  redrawing it.
 - Mock data only in the harness and tests: never the user's tracks, config or accounts.
   The mock track, lyric and cover are made up for this repo.

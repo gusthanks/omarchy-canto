@@ -4,7 +4,7 @@
 
 ### Added
 
-- **Canto's icon** first in the pill (its symbolic app icon, in the theme color). A click
+- **Canto's icon** first in the pill (its colorful app icon, the one the app menu shows). A click
   raises Canto's window (MPRIS Raise) or starts Canto when it is closed
   (`gtk-launch io.github.gusthanks.Canto`, falling back to `canto`).
 - **Canto closed**: the pill shrinks to the dimmed icon instead of disappearing (setting
