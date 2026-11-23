@@ -8,9 +8,10 @@ import "Model.js" as Model
 // Canto Now Playing: what Canto is playing, in the bar.
 //   Canto icon     raise Canto's window, or start Canto when it is closed
 //   buttons        previous / play-pause / next (and the heart, if shown)
-//   click the text title mode <-> lyric mode (saved as startMode)
+//   click the text the popup (Canto's mini player layout and lyric lines)
+//   right click    on the text: title mode <-> lyric mode (saved as startMode);
+//                  on the icon or a button: the popup
 //   middle click   next track
-//   right click    the popup (Canto's mini player layout and lyric lines)
 //   wheel          up: previous, down: next
 // With Canto closed the pill is just the dimmed icon (showWhenClosed), or
 // hidden. Settings (shell.json entry or the bar settings form):
@@ -95,11 +96,28 @@ BarWidget {
 
   property var wheelState: ({ acc: 0, last: 0 })
 
+  QtObject {
+    id: popupOwner
+    function close() { root.close() }
+  }
+
+  // The bar lays a pointer area over every widget: it shows the hand and takes
+  // the left click only over something pressable. The buttons are; with this,
+  // the rest of the pill (the text) is too, and its click opens the popup.
+  // Right and middle clicks still reach the pill's own handlers.
+  function triggerPress(button) {
+    if (button === Qt.LeftButton) pill.textClicked()
+  }
+
   PopupCard {
     id: popup
     anchorItem: root
     bar: root.bar
-    owner: root
+    // The bar underlines the widget whose popup is open (an accent line under
+    // the whole text here, as wide as the pill). Registering the popup under
+    // this stand-in leaves that line out; closing on another panel's open
+    // works the same, through close().
+    owner: popupOwner
     open: root.popupOpen
     contentWidth: popup.fittedContentWidth(view.implicitWidth)
     contentHeight: popup.fittedContentHeight(view.implicitHeight)

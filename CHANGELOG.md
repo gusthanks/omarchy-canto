@@ -28,6 +28,9 @@
 - Clicks on the text are swapped: a click opens the popup, a right click switches between
   the title and the lyric line. The tooltip says both. The icon and the buttons still open
   the popup on a right click.
+- The pill shows the pointing hand over all of it (the bar's pointer layer showed it only over
+  a pressable widget), and the bar no longer draws its accent underline below the whole pill
+  while the popup is open.
 - The lyrics toggle and lyric mode use Canto's own lyrics icon (a speech bubble with quotes,
   Material Design `comment-quote-outline`) instead of a microphone.
 

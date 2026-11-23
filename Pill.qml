@@ -253,7 +253,7 @@ Item {
           // click switches the pill between the title and the lyric line.
           if (mouse.button === Qt.RightButton) root.toggleRequested()
           else if (mouse.button === Qt.MiddleButton) { if (root.source) root.source.next() }
-          else root.popupRequested()
+          else root.textClicked()
         }
         onWheel: function(wheel) { root.wheelMoved(wheel.angleDelta.y) }
         onEntered: if (root.bar) root.bar.showTooltip(textArea, root.tooltip())
@@ -272,6 +272,13 @@ Item {
 
   // The track (handy while the text shows a lyric), what a click does, and
   // in lyric mode without the bridge, where to turn it on.
+  // A plain click on the text: the popup. The bar's pointer layer routes it
+  // here (BarWidget.triggerPress); the MouseArea below handles it elsewhere.
+  function textClicked() {
+    if (root.bar) root.bar.hideTooltip(textArea)
+    root.popupRequested()
+  }
+
   function tooltip() {
     if (!root.source) return ""
     var lines = [root.trackText]
