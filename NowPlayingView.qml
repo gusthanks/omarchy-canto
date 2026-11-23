@@ -3,8 +3,8 @@ import qs.Commons
 import qs.Commons as Commons
 import qs.Ui
 
-// The popup's content: cover, title, artists, album, the current lyric line
-// and previous / play-pause / next. Reads everything from `source`
+// The popup's content: cover, title, artists, album, the lyric (previous,
+// current and next line, whole, wrapped) and previous / play-pause / next. Reads everything from `source`
 // (CantoSource.qml, or dev/MockCanto.qml in the harness). Clicking the cover
 // or the title brings Canto's window up.
 Item {
@@ -12,7 +12,6 @@ Item {
 
   property var source: null
   property var tr: function(key, fallback) { return fallback !== undefined ? fallback : key }
-  property bool showLyric: true
   property color foreground: Commons.Color.foreground
   property color accent: Commons.Color.accent
   property string fontFamily: Style.font.family
@@ -21,18 +20,16 @@ Item {
   property bool loadArt: true
 
   readonly property bool hasTrack: !!source && source.hasTrack
-  readonly property string lyric: showLyric && source ? source.lyric : ""
-  readonly property bool showHint: showLyric && !!source && hasTrack && !source.bridgeAvailable
+  readonly property string lyric: source ? source.lyric : ""
+  readonly property string previousLyric: source ? source.previousLyric : ""
+  readonly property string nextLyric: source ? source.nextLyric : ""
+  // Shown during an instrumental break too, when Canto knows the next line.
+  readonly property bool showLyrics: lyric !== "" || nextLyric !== ""
+  readonly property bool showHint: !!source && hasTrack && !source.bridgeAvailable
   readonly property real coverSize: Style.space(76)
 
   implicitWidth: Style.space(340)
   implicitHeight: column.implicitHeight
-
-  FontMetrics {
-    id: lyricMetrics
-    font.family: root.fontFamily
-    font.pixelSize: Style.font.subtitle
-  }
 
   Column {
     id: column
@@ -141,36 +138,63 @@ Item {
       }
     }
 
-    // The synced line, set off by a thin accent rule. It keeps two lines of
-    // room while the track has lyrics, so the popup does not jump between a
-    // short line and a long one.
-    Item {
+    // The lyric: the line before, the current one (larger, set off by a thin
+    // accent rule) and the next one. Whole lines, wrapped, never cut.
+    Column {
       id: lyricBlock
       width: parent.width
-      visible: root.lyric !== ""
-      height: Math.ceil(lyricMetrics.lineSpacing * 2)
+      visible: root.showLyrics
+      spacing: Style.space(6)
+      readonly property real indent: Style.space(12)
 
-      Rectangle {
-        width: Math.max(1, Style.space(2))
-        height: parent.height
-        radius: width / 2
-        color: root.accent
+      Text {
+        x: lyricBlock.indent
+        width: parent.width - lyricBlock.indent
+        visible: text !== ""
+        textFormat: Text.PlainText
+        text: root.previousLyric
+        color: Qt.darker(root.foreground, 1.7)
+        font.family: root.fontFamily
+        font.pixelSize: Style.font.bodySmall
+        wrapMode: Text.Wrap
       }
 
-      FadeText {
-        anchors.left: parent.left
-        anchors.leftMargin: Style.space(12)
-        anchors.right: parent.right
-        anchors.verticalCenter: parent.verticalCenter
-        height: parent.height
-        text: root.lyric
-        color: root.foreground
-        fontFamily: root.fontFamily
-        pixelSize: Style.font.subtitle
-        italic: true
+      Item {
+        width: parent.width
+        height: currentLine.implicitHeight
+
+        Rectangle {
+          width: Math.max(1, Style.space(2))
+          height: parent.height
+          radius: width / 2
+          color: root.accent
+        }
+
+        Text {
+          id: currentLine
+          x: lyricBlock.indent
+          width: parent.width - lyricBlock.indent
+          textFormat: Text.PlainText
+          // A break between verses: a quiet note until the next line.
+          text: root.lyric !== "" ? root.lyric : "♪"
+          color: root.lyric !== "" ? root.foreground : Qt.darker(root.foreground, 1.7)
+          font.family: root.fontFamily
+          font.pixelSize: Style.font.subtitle
+          font.italic: true
+          wrapMode: Text.Wrap
+        }
+      }
+
+      Text {
+        x: lyricBlock.indent
+        width: parent.width - lyricBlock.indent
+        visible: text !== ""
+        textFormat: Text.PlainText
+        text: root.nextLyric
+        color: Qt.darker(root.foreground, 1.7)
+        font.family: root.fontFamily
+        font.pixelSize: Style.font.bodySmall
         wrapMode: Text.Wrap
-        maximumLineCount: 2
-        animate: root.animate
       }
     }
 
