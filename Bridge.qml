@@ -31,6 +31,10 @@ Item {
   property string previous: ""
   property string next: ""
   property real endsInMs: 0
+  // Newer Canto: true / false, or null (unknown, not a Spotify track).
+  property var liked: null
+  property real progressMs: 0
+  property real durationMs: 0
   property real updatedAt: 0
   // Wall clock for the staleness check, ticking slowly only while watching.
   property real now: 0
@@ -46,10 +50,16 @@ Item {
 
   readonly property bool frameValid: Model.bridgeFrameValid(frame, trackTitle, trackPlaying, checkStale ? now : 0)
   readonly property string lyricLine: frameValid ? lyric : ""
+  readonly property string previousLine: neighbors.previous
+  readonly property string nextLine: neighbors.next
   // Canto's own neighbors when it sends them; otherwise the line remembered
-  // before this one (older Canto has no next line).
-  readonly property string previousLine: frameValid && hasNeighbors ? previous : (history ? history.previous : "")
-  readonly property string nextLine: frameValid ? next : ""
+  // before this one. A repeat of the current line is never shown.
+  readonly property var neighbors: Model.neighborLines(lyricLine,
+    frameValid && hasNeighbors ? previous : (history ? history.previous : ""),
+    frameValid ? next : "")
+  readonly property var likedState: frameValid ? liked : null
+  // Where the track is, as of the last frame (the popup's progress line).
+  readonly property real progress: frameValid ? Model.progressFraction(progressMs, durationMs) : -1
   readonly property real lineEndsInMs: frameValid ? endsInMs : 0
   readonly property real lineMs: history ? history.lineMs : 0
 
@@ -73,6 +83,9 @@ Item {
     root.previous = f.previous
     root.next = f.next
     root.endsInMs = f.endsInMs
+    root.liked = f.liked
+    root.progressMs = f.progressMs
+    root.durationMs = f.durationMs
     root.updatedAt = f.updatedAt
     root.lyric = f.lyric
     root.now = Date.now()
@@ -86,6 +99,7 @@ Item {
     root.previous = ""
     root.next = ""
     root.endsInMs = 0
+    root.liked = null
   }
 
   onWatchingChanged: if (!watching) clear()

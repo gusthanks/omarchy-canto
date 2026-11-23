@@ -38,8 +38,13 @@ Item {
   // state-short.json (a line that fits).
   property string frameFile: "state.json"
 
-  property string title: "Paper Lanterns"
-  property string artist: Model.artistLine(["Lumen Coast", "Ana Vale"])
+  // Off: as if Canto were closed (the pill shows only the dimmed icon).
+  property bool running: true
+  property bool wantBridge: true
+  property bool trackProgress: false
+
+  property string title: running ? "Paper Lanterns" : ""
+  property string artist: running ? Model.artistLine(["Lumen Coast", "Ana Vale"]) : ""
   property string album: "Night Ferry"
   property string artUrl: Qt.resolvedUrl("canto/dev/mock/cover.svg")
   readonly property bool hasTrack: title !== "" || artist !== ""
@@ -48,7 +53,7 @@ Item {
   readonly property bool canPrevious: true
   readonly property bool canNext: true
   readonly property bool canPlayPause: true
-  readonly property bool canRaise: true
+  readonly property bool canRaise: running
 
   readonly property bool bridgeAvailable: bridge.available
   readonly property string lyric: bridge.lyricLine
@@ -57,15 +62,24 @@ Item {
   readonly property real lyricEndsInMs: bridge.lineEndsInMs
   readonly property real lineMs: bridge.lineMs
 
+  property var likedOverride: null
+  readonly property var likedState: likedOverride !== null ? likedOverride : bridge.likedState
+  readonly property bool likedKnown: likedState === true || likedState === false
+  readonly property bool liked: likedState === true
+  readonly property real progress: bridge.progress
+
   function playPause() { playing = !playing }
   function next() {}
   function previous() {}
   function raise() {}
+  function launch() {}
+  function raiseOrLaunch() {}
+  function toggleLiked() { if (likedKnown) likedOverride = !liked }
 
   W.Bridge {
     id: bridge
     path: String(Qt.resolvedUrl("canto/dev/mock/" + root.frameFile)).replace(/^file:\/\//, "")
-    watching: root.bridgeOn
+    watching: root.bridgeOn && root.running
     trackTitle: root.title
     trackArtist: root.artist
     trackPlaying: root.playing
