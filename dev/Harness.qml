@@ -11,11 +11,13 @@ import "canto" as W
 // dev/mock/state.json); Canto does not need to be running.
 //
 // MODE (env):
-//   preview     floating window with the pill and the popup, to play with
-//   bar         the pill showing Title · Artist          -> $OUT (png)
-//   bar-lyric   the pill showing the synced lyric line   -> $OUT (png)
-//   panel       the popup with cover, lyric and controls -> $OUT (png)
-//   panel-hint  the popup with Visual Bridge off         -> $OUT (png)
+//   preview          floating window with the pills and the popup, to play with
+//   bar              controls + Title · Artist (title mode)        -> $OUT (png)
+//   bar-lyric        lyric mode, a line that fits                  -> $OUT (png)
+//   bar-lyric-page1  lyric mode, a long line: its first page       -> $OUT (png)
+//   bar-lyric-page2  lyric mode, the same line: its second page    -> $OUT (png)
+//   panel            the popup: cover, three lyric lines, controls -> $OUT (png)
+//   panel-hint       the popup with Visual Bridge off              -> $OUT (png)
 ShellRoot {
   id: shell
 
@@ -79,11 +81,15 @@ ShellRoot {
   component BarStrip: Rectangle {
     id: strip
     property bool bridgeOn: true
+    property string mode: "title"
+    property string frameFile: "state.json"
+    // A page other than the first, for the paging captures.
+    property int page: 0
     width: barRow.implicitWidth + Style.space(28)
     height: Style.bar.sizeHorizontal
     color: Commons.Color.bar.background
 
-    MockCanto { id: mock; bridgeOn: strip.bridgeOn }
+    MockCanto { id: mock; bridgeOn: strip.bridgeOn; frameFile: strip.frameFile }
 
     Row {
       id: barRow
@@ -99,12 +105,15 @@ ShellRoot {
       }
 
       W.Pill {
+        id: pill
         anchors.verticalCenter: parent.verticalCenter
         width: implicitWidth
         height: implicitHeight
         bar: mock.bar
         source: mock
-        showLyric: true
+        tr: mock.tr
+        mode: strip.mode
+        showControls: true
         maxWidth: Style.space(240)
       }
 
@@ -116,11 +125,22 @@ ShellRoot {
         font.pixelSize: Style.bar.iconFont
       }
     }
+
+    Timer {
+      running: strip.page > 0
+      interval: 700
+      onTriggered: pill.pageIndex = Math.min(strip.page, pill.pages.length - 1)
+    }
   }
 
   Component {
     id: barScene
-    BarStrip { bridgeOn: shell.mode === "bar-lyric" }
+    BarStrip {
+      bridgeOn: shell.mode !== "bar"
+      mode: shell.mode === "bar" ? "title" : "lyric"
+      frameFile: shell.mode === "bar-lyric" ? "state-short.json" : "state.json"
+      page: shell.mode === "bar-lyric-page2" ? 1 : 0
+    }
   }
 
   // The popup: NowPlayingView inside a frame shaped like the shell's popups.
@@ -160,8 +180,9 @@ ShellRoot {
     Column {
       padding: Style.space(16)
       spacing: Style.space(16)
-      BarStrip { bridgeOn: true }
-      BarStrip { bridgeOn: false }
+      BarStrip { bridgeOn: false; mode: "title" }
+      BarStrip { mode: "lyric"; frameFile: "state-short.json" }
+      BarStrip { mode: "lyric" }
       PopupFrame { bridgeOn: true }
     }
   }
