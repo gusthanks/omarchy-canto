@@ -118,14 +118,17 @@ Item {
       id: cantoButton
       anchors.verticalCenter: parent.verticalCenter
       bar: root.bar
-      slotSize: Style.bar.statusSlot
+      // The app icon is full color and reads as a picture, not a glyph: it
+      // gets the room of a pet or app icon (about 70% of the bar), as the other
+      // picture icons on the bar do, and a full icon slot around it.
+      slotSize: Style.bar.iconSlot
       tooltipText: root.running ? root.tr("canto.open", "Open Canto") : root.tr("canto.start", "Start Canto")
       iconComponent: Component {
         Item {
           CantoIcon {
             x: (parent.width - width) / 2
             y: (parent.height - height) / 2
-            size: cantoButton.iconSize
+            size: Math.round((root.bar ? root.bar.barSize : Style.bar.sizeHorizontal) * 0.7)
             // Closed: dimmed, like a paused glyph.
             color: root.running ? root.foreground : root.dimColor
             dimmed: !root.running
