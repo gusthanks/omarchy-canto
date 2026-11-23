@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import qs.Commons as Commons
 
 // Text that cross-fades when it changes: the new text fades in, rising a
 // little, while the old one fades out in place. Two lines swap roles on each
